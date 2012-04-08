@@ -30,3 +30,14 @@ class CorporaTest(unittest.TestCase):
         xml = self.corpus.get_text_xml('3')
         tokens = xml.findall('paragraphs//token')
         self.assertEqual(tokens[17].get('text'), 'арт-группы')
+
+    def test_tokens(self):
+        tokens = list(self.corpus.itertokens())
+        self.assertEqual(len(tokens), 2358)
+
+        # check some random tokens
+        self.assertEqual(tokens[344], 'социально-исторического')
+        self.assertEqual(tokens[430], ':')
+        self.assertEqual(tokens[967], 'Школа')
+        self.assertEqual(tokens[2225], '«')
+        self.assertEqual(tokens[2322], 'крэнк')
