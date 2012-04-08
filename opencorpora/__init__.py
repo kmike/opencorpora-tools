@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, division
 from collections import namedtuple
-from .compat import ElementTree, OrderedDict
+from .compat import ElementTree, OrderedDict, utf8_for_PY2
 from . import xml_utils
 
 _TextMeta = namedtuple('_TextMeta', 'title bounds')
@@ -32,6 +32,10 @@ class OpenCorporaBase(object):
 
     def as_text(self):
         return ' '.join(self.itertokens())
+
+    @utf8_for_PY2
+    def __repr__(self):
+        return "%s: %s" % (self.__class__, self.as_text())
 
 
 class Sentence(OpenCorporaBase):
