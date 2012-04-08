@@ -8,28 +8,35 @@ import opencorpora
 
 TEST_DATA = os.path.join(os.path.dirname(__file__), 'annot.opcorpora.test.xml')
 
-class CorporaTest(unittest.TestCase):
-
+class BaseTest(unittest.TestCase):
     def setUp(self):
         self.corpus = opencorpora.Corpora(TEST_DATA)
 
+
+class CorporaTest(BaseTest):
+
     def test_text_meta(self):
         self.assertEqual(self.corpus.catalog(), [
-            ('1', '&quot;Частный корреспондент&quot;'),
-            ('2', '00021 Школа злословия'),
-            ('3', '00022 Последнее восстание в Сеуле'),
-            ('4', '00023 За кота - ответишь!'),
+            (1, '"Частный корреспондент"'),
+            (2, '00021 Школа злословия'),
+            (3, '00022 Последнее восстание в Сеуле'),
+            (4, '00023 За кота - ответишь!'),
         ])
 
     def test_raw_loading(self):
-        loaded_raw = self.corpus._get_text_by_raw_offset('3')
-        loaded_line = self.corpus._get_text_by_line_offset('3') # this is reliable
+        loaded_raw = self.corpus._get_text_by_raw_offset(3)
+        loaded_line = self.corpus._get_text_by_line_offset(3) # this is reliable
         self.assertEqual(loaded_raw, loaded_line)
 
     def test_text_xml(self):
-        xml = self.corpus.get_text_xml('3')
+        xml = self.corpus._text_xml(3)
         tokens = xml.findall('paragraphs//token')
         self.assertEqual(tokens[17].get('text'), 'арт-группы')
+
+    def test_text_titles(self):
+        titles = [text.title() for text in self.corpus.itertexts()]
+        catalog_titles = list(dict(self.corpus.catalog()).values())
+        self.assertEqual(titles, catalog_titles)
 
     def test_tokens(self):
         tokens = list(self.corpus.itertokens())
@@ -41,3 +48,14 @@ class CorporaTest(unittest.TestCase):
         self.assertEqual(tokens[967], 'Школа')
         self.assertEqual(tokens[2225], '«')
         self.assertEqual(tokens[2322], 'крэнк')
+
+
+class TextTest(BaseTest):
+
+    def test_tokens(self):
+        self.assertEqual(self.corpus.get_text(1).tokens(), [])
+
+        tokens = self.corpus.get_text(2).tokens()
+
+        self.assertEqual(len(tokens), 1027)
+        self.assertEqual(tokens[9], 'градус')

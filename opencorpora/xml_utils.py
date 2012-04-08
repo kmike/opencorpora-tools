@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import codecs
 from collections import namedtuple
 import re
+import xml.sax.saxutils
 from .compat import ElementTree
 
 Bounds = namedtuple('Bounds', 'line_start line_end byte_start byte_end')
@@ -17,6 +18,22 @@ def iterparse(source, tag):
             yield elem
         elem.clear()
 
+
+def copy_element(original):
+    """
+    This creates a shallow copy of en Element;
+    subelements will be shared with the original tree.
+
+    Extracted from ElementTree 1.3.
+    """
+    elem = original.makeelement(original.tag, original.attrib)
+    elem.text = original.text
+    elem.tail = original.tail
+    elem[:] = list(original)
+    return elem
+
+def unescape_attribute(text):
+    return xml.sax.saxutils.unescape(text, {'&quot;': '"'})
 
 def bounds(filename, start_re, end_re, encoding='utf8'):
     """
