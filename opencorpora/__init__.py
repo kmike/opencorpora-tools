@@ -6,8 +6,66 @@ from . import xml_utils
 
 _TextMeta = namedtuple('_TextMeta', 'title bounds')
 
+class OpenCorporaBase(object):
+    """
+    Common interface for OpenCorpora objects.
+    """
+    def iterparas(self):
+        raise NotImplementedError()
 
-class Text(object):
+    def itertokens(self):
+        raise NotImplementedError()
+
+    def itersents(self):
+        raise NotImplementedError()
+
+
+    def paras(self):
+        return list(self.iterparas())
+
+    def tokens(self):
+        return list(self.itertokens())
+
+    def sents(self):
+        return list(self.itersents())
+
+
+    def as_text(self):
+        return ' '.join(self.itertokens())
+
+
+class Sentence(OpenCorporaBase):
+    """
+    Sentence.
+    """
+    def __init__(self, xml):
+        self.root = xml_utils.copy_element(xml)
+
+    def itertokens(self):
+        for token in self.root.findall('tokens//token'):
+            yield token.get('text')
+
+    def source(self):
+        return self.root.find('source')
+
+
+class Paragraph(OpenCorporaBase):
+    """
+    Text paragraph.
+    """
+    def __init__(self, xml):
+        self.root = xml_utils.copy_element(xml)
+
+    def itertokens(self):
+        for token in self.root.findall('sentence//token'):
+            yield token.get('text')
+
+    def itersents(self):
+        for sent in self.root.findall('sentence'):
+            yield Sentence(sent)
+
+
+class Text(OpenCorporaBase):
     """
     Single OpenCorpora text.
     """
@@ -21,11 +79,16 @@ class Text(object):
         for token in self.root.findall('paragraphs//token'):
             yield token.get('text')
 
-    def tokens(self):
-        return list(self.itertokens())
+    def iterparas(self):
+        for para in self.root.findall('paragraphs/paragraph'):
+            yield Paragraph(para)
+
+    def itersents(self):
+        for sent in self.root.findall('paragraphs//sentence'):
+            yield Sentence(sent)
 
 
-class Corpora(object):
+class Corpora(OpenCorporaBase):
     """
     OpenCorpora.ru corpora reader. Provides fast access to individual
     texts without loading and parsing the whole XML; is capable of iterating
@@ -57,11 +120,14 @@ class Corpora(object):
         for token in xml_utils.iterparse(self.filename, 'token'):
             yield token.get('text')
 
-    def tokens(self):
-        """
-        Returns a list of corpus tokens (this can be slow).
-        """
-        return list(self.tokens())
+    def itersents(self):
+        for sent in xml_utils.iterparse(self.filename, 'sentence'):
+            yield Sentence(sent)
+
+    def iterparas(self):
+        for para in xml_utils.iterparse(self.filename, 'paragraph'):
+            yield Paragraph(para)
+
 
     def itertexts(self):
         """

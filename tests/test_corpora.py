@@ -39,7 +39,7 @@ class CorporaTest(BaseTest):
         self.assertEqual(titles, catalog_titles)
 
     def test_tokens(self):
-        tokens = list(self.corpus.itertokens())
+        tokens = self.corpus.tokens()
         self.assertEqual(len(tokens), 2358)
 
         # check some random tokens
@@ -48,6 +48,11 @@ class CorporaTest(BaseTest):
         self.assertEqual(tokens[967], 'Школа')
         self.assertEqual(tokens[2225], '«')
         self.assertEqual(tokens[2322], 'крэнк')
+
+    def test_paras(self):
+        paras = self.corpus.paras()
+        for para in paras:
+            self.assertTrue(len(para.tokens()) > 0)
 
 
 class TextTest(BaseTest):
