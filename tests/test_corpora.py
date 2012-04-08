@@ -28,10 +28,17 @@ class CorporaTest(BaseTest):
         loaded_line = self.corpus._get_text_by_line_offset(3) # this is reliable
         self.assertEqual(loaded_raw, loaded_line)
 
-    def test_text_xml(self):
+    def test_single_text_xml(self):
         xml = self.corpus._text_xml(3)
         tokens = xml.findall('paragraphs//token')
         self.assertEqual(tokens[17].get('text'), 'арт-группы')
+
+    def test_texts_xml(self):
+        text = self.corpus.texts()[2]
+        tokens = text.tokens()
+        self.assertTrue(tokens)
+        self.assertEqual(tokens[17], 'арт-группы')
+
 
     def test_text_titles(self):
         titles = [text.title() for text in self.corpus.itertexts()]
@@ -51,8 +58,18 @@ class CorporaTest(BaseTest):
 
     def test_paras(self):
         paras = self.corpus.paras()
+        self.assertEqual(len(paras), 41)
+
         for para in paras:
-            self.assertTrue(len(para.tokens()) > 0)
+            self.assertTrue(para.tokens())
+            self.assertTrue(para.sents())
+
+    def test_sents(self):
+        sents = self.corpus.sents()
+        self.assertEqual(len(sents), 102)
+
+        for sent in sents:
+            self.assertTrue(sent.tokens())
 
 
 class TextTest(BaseTest):
@@ -64,3 +81,10 @@ class TextTest(BaseTest):
 
         self.assertEqual(len(tokens), 1027)
         self.assertEqual(tokens[9], 'градус')
+
+    def test_sents(self):
+        sents = self.corpus.get_text(2).sents()
+        self.assertEqual(len(sents), 44)
+        self.assertEqual(sents[1].as_text(), 'Сохранится ли градус дискуссии в новом сезоне?')
+
+

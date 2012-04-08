@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function, division
 import codecs
 from collections import namedtuple
 import re
@@ -8,7 +8,7 @@ from .compat import ElementTree
 
 Bounds = namedtuple('Bounds', 'line_start line_end byte_start byte_end')
 
-def iterparse(source, tag):
+def iterparse(source, tag, clear=False):
     """
     iterparse variant that supports 'tag' parameter (like lxml),
     handles only 'end' event, yields elements and clears nodes after parsing.
@@ -16,21 +16,9 @@ def iterparse(source, tag):
     for event, elem in ElementTree.iterparse(source):
         if elem.tag == tag:
             yield elem
-        elem.clear()
+        if clear:
+            elem.clear()
 
-
-def copy_element(original):
-    """
-    This creates a shallow copy of en Element;
-    subelements will be shared with the original tree.
-
-    Extracted from ElementTree 1.3.
-    """
-    elem = original.makeelement(original.tag, original.attrib)
-    elem.text = original.text
-    elem.tail = original.tail
-    elem[:] = list(original)
-    return elem
 
 def unescape_attribute(text):
     return xml.sax.saxutils.unescape(text, {'&quot;': '"'})

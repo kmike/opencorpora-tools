@@ -39,14 +39,17 @@ class Sentence(OpenCorporaBase):
     Sentence.
     """
     def __init__(self, xml):
-        self.root = xml_utils.copy_element(xml)
+        self.root = xml
 
     def itertokens(self):
         for token in self.root.findall('tokens//token'):
             yield token.get('text')
 
     def source(self):
-        return self.root.find('source')
+        return self.root.find('source').text
+
+    def as_text(self):
+        return self.source()
 
 
 class Paragraph(OpenCorporaBase):
@@ -54,7 +57,7 @@ class Paragraph(OpenCorporaBase):
     Text paragraph.
     """
     def __init__(self, xml):
-        self.root = xml_utils.copy_element(xml)
+        self.root = xml
 
     def itertokens(self):
         for token in self.root.findall('sentence//token'):
@@ -64,13 +67,16 @@ class Paragraph(OpenCorporaBase):
         for sent in self.root.findall('sentence'):
             yield Sentence(sent)
 
+    def as_text(self):
+        return ' '.join(sent.as_text() for sent in self.itersents())
+
 
 class Text(OpenCorporaBase):
     """
     Single OpenCorpora text.
     """
     def __init__(self, xml):
-        self.root = xml_utils.copy_element(xml)
+        self.root = xml
 
     def title(self):
         return self.root.get('name')
@@ -86,6 +92,9 @@ class Text(OpenCorporaBase):
     def itersents(self):
         for sent in self.root.findall('paragraphs//sentence'):
             yield Sentence(sent)
+
+    def as_text(self):
+        return "\n\n".join(para.as_text() for para in self.iterparas())
 
 
 class Corpora(OpenCorporaBase):
@@ -117,7 +126,7 @@ class Corpora(OpenCorporaBase):
         """
         Returns an iterator over corpus tokens.
         """
-        for token in xml_utils.iterparse(self.filename, 'token'):
+        for token in xml_utils.iterparse(self.filename, 'token', clear=True):
             yield token.get('text')
 
     def itersents(self):

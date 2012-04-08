@@ -18,6 +18,7 @@ Thumbs.db$
 ^dist
 ^MANIFEST$
 \.egg-info$
+\.coverage$
 
 #project-specific files
 \.tox

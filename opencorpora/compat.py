@@ -6,7 +6,6 @@ try:
 except ImportError:
     from xml.etree import ElementTree
 
-
 try:
     from collections import OrderedDict
 except ImportError:
