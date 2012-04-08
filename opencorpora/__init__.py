@@ -23,32 +23,33 @@ class Corpora(object):
         """
         Populates texts meta information cache for fast lookups.
         """
-        for text_id, offset in self._text_offsets():
-            self._text_meta[text_id] = offset
+        for text_id, offset, name in self._text_offsets():
+            self._text_meta[text_id] = {'pos': offset, 'name':name}
 
     def _text_offsets(self):
-        START_RE = re.compile(r'<text id="(\d+)"')
-        text_id, line_start, line_end, raw_start, raw_end = None, None, None, None, None
+        START_RE = re.compile(r'<text id="(\d+)"[^>]*name="([^"]*)"')
+        text_id, name, line_start, line_end, raw_start, raw_end = [None]*6
         offset = 0
         with open(self.filename, 'rb') as f:
             for index, line in enumerate(f):
                 line_text = line.decode('utf8')
                 mo = re.match(START_RE, line_text)
                 if mo:
-                    text_id, line_start, raw_start = mo.group(1), index, offset
+                    text_id, name = mo.group(1), mo.group(2)
+                    line_start, raw_start = index, offset
 
                 offset += len(line)
 
                 if '</text>' in line_text:
-                    yield text_id, TextOffset(line_start, index, raw_start, offset)
-                    text_id, line_start, line_end, raw_start, raw_end = None, None, None, None, None
+                    yield text_id, TextOffset(line_start, index, raw_start, offset), name
+                    text_id, name, line_start, line_end, raw_start, raw_end = [None]*6
 
     def _get_text_by_raw_offset(self, text_id):
         """
         Loads text from xml using bytes offset information.
         XXX: this is not tested under Windows.
         """
-        offset = self._text_meta[text_id]
+        offset = self._text_meta[text_id]['pos']
         with open(self.filename, 'rb') as f:
             f.seek(offset.raw_start)
             return f.read(offset.raw_end-offset.raw_start).decode('utf8')
@@ -59,7 +60,7 @@ class Corpora(object):
         This is much slower than _get_text_by_raw_offset but should
         work everywhere.
         """
-        offset = self._text_meta[text_id]
+        offset = self._text_meta[text_id]['pos']
         lines = []
         with codecs.open(self.filename, 'rb', 'utf8') as f:
             for index, line in enumerate(f):
@@ -69,8 +70,12 @@ class Corpora(object):
                     break
         return ''.join(lines)
 
-    def get_text_ids(self):
-        return list(self._text_meta.keys())
+    def catalog(self):
+        """
+        Returns information about texts in corpora:
+        a list of tuples (text_id, text_title).
+        """
+        return [(text_id, self._text_meta[text_id]['name']) for text_id in self._text_meta]
 
     def get_text_xml(self, text_id):
         """

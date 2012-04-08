@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, division
+from __future__ import absolute_import, print_function, division, unicode_literals
 import os
 import unittest
 from opencorpora.compat import ElementTree
@@ -14,7 +14,12 @@ class CorporaTest(unittest.TestCase):
         self.corpus = opencorpora.Corpora(TEST_DATA)
 
     def test_text_meta(self):
-        self.assertEqual(self.corpus.get_text_ids(), ['1', '2', '3', '4'])
+        self.assertEqual(self.corpus.catalog(), [
+            ('1', '&quot;Частный корреспондент&quot;'),
+            ('2', '00021 Школа злословия'),
+            ('3', '00022 Последнее восстание в Сеуле'),
+            ('4', '00023 За кота - ответишь!'),
+        ])
 
     def test_raw_loading(self):
         loaded_raw = self.corpus._get_text_by_raw_offset('3')
@@ -23,10 +28,5 @@ class CorporaTest(unittest.TestCase):
 
     def test_text_xml(self):
         xml = self.corpus.get_text_xml('3')
-        #print(ElementTree.tostring(xml, encoding='utf8'))
-        #print(xml.xpath('//token[@id="1346"]'))
-
-#    def test_get_text(self):
-#        print
-#        print self.reader._texts
-#        print self.reader.get_text_raw('2')
+        tokens = xml.findall('paragraphs//token')
+        self.assertEqual(tokens[17].get('text'), 'арт-группы')
