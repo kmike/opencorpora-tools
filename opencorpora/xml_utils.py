@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
+import codecs
 from collections import namedtuple
 import re
 from .compat import ElementTree
 
-ElementBounds = namedtuple('ElementBounds', 'line_start line_end byte_start byte_end')
+Bounds = namedtuple('Bounds', 'line_start line_end byte_start byte_end')
 
 def iterparse(source, tag):
     """
@@ -19,23 +20,48 @@ def iterparse(source, tag):
 
 def bounds(filename, start_re, end_re, encoding='utf8'):
     """
-    Chunks formatted xml file according to start_re and end_re:
-    yields (start_match, ElementBounds) tuples.
+    Computes chunk bounds from text file according to start_re and end_re:
+    yields (start_match, Bounds) tuples.
     """
-    mo, line_start, line_end, raw_start, raw_end = [None]*5
-    offset = 0
     start_re, end_re = re.compile(start_re), re.compile(end_re)
+    mo, line_start, line_end, byte_start, byte_end = [None]*5
+    offset = 0
 
     with open(filename, 'rb') as f:
         for index, line in enumerate(f):
             line_text = line.decode(encoding)
             start_match = re.match(start_re, line_text)
             if start_match:
-                mo, line_start, raw_start = start_match, index, offset
+                mo, line_start, byte_start = start_match, index, offset
 
             offset += len(line)
 
             end_match = re.match(end_re, line_text)
             if end_match:
-                yield mo, ElementBounds(line_start, index, raw_start, offset)
-                mo, line_start, line_end, raw_start, raw_end = [None]*5
+                yield mo, Bounds(line_start, index, byte_start, offset)
+                mo, line_start, line_end, byte_start, byte_end = [None]*5
+
+
+def load_chunk(filename, bounds, encoding='utf8', slow=False):
+    """
+    Loads a chunk from file using Bounds info.
+    Pass 'slow=True' for an alternative loading method based on line numbers.
+    """
+    if slow:
+        return _load_chunk_slow(filename, bounds, encoding)
+
+    with open(filename, 'rb') as f:
+        f.seek(bounds.byte_start)
+        size = bounds.byte_end - bounds.byte_start
+        return f.read(size).decode(encoding)
+
+
+def _load_chunk_slow(filename, bounds, encoding='utf8'):
+    lines = []
+    with codecs.open(filename, 'rb', encoding) as f:
+        for index, line in enumerate(f):
+            if index >= bounds.line_start:
+                lines.append(line)
+            if index >= bounds.line_end:
+                break
+    return ''.join(lines)

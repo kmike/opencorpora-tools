@@ -2,7 +2,6 @@
 from __future__ import absolute_import, print_function, division
 import re
 from collections import namedtuple
-import codecs
 from .compat import ElementTree, OrderedDict
 from . import xml_utils
 
@@ -38,10 +37,7 @@ class Corpora(object):
         XXX: this is not tested under Windows.
         """
         bounds = self._text_meta[text_id].bounds
-        with open(self.filename, 'rb') as f:
-            f.seek(bounds.byte_start)
-            size = bounds.byte_end - bounds.byte_start
-            return f.read(size).decode('utf8')
+        return xml_utils.load_chunk(self.filename, bounds)
 
     def _get_text_by_line_offset(self, text_id):
         """
@@ -50,14 +46,7 @@ class Corpora(object):
         work everywhere.
         """
         bounds = self._text_meta[text_id].bounds
-        lines = []
-        with codecs.open(self.filename, 'rb', 'utf8') as f:
-            for index, line in enumerate(f):
-                if index >= bounds.line_start:
-                    lines.append(line)
-                if index >= bounds.line_end:
-                    break
-        return ''.join(lines)
+        return xml_utils.load_chunk(self.filename, bounds, slow=True)
 
     def catalog(self):
         """
@@ -85,7 +74,7 @@ class Corpora(object):
         Returns a list of corpus tokens (this can be slow).
         """
         return list(self.tokens())
-        
+
 
 #
 #    def words(self):
