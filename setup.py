@@ -6,7 +6,7 @@ for cmd in ('egg_info', 'develop'):
     if cmd in sys.argv:
         from setuptools import setup
 
-__version__ = '0.1'
+__version__ = '0.0'
 
 setup(
     name = 'opencorpora-tools',

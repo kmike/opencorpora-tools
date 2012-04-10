@@ -4,9 +4,9 @@ from collections import namedtuple
 from .compat import ElementTree, OrderedDict, utf8_for_PY2
 from . import xml_utils
 
-_TextMeta = namedtuple('_TextMeta', 'title bounds')
+_DocumentMeta = namedtuple('_DocumentMeta', 'title bounds')
 
-class OpenCorporaBase(object):
+class _OpenCorporaBase(object):
     """
     Common interface for OpenCorpora objects.
     """
@@ -33,12 +33,13 @@ class OpenCorporaBase(object):
     def as_text(self):
         return ' '.join(self.itertokens())
 
+    # XXX: does this work under windows?
     @utf8_for_PY2
     def __repr__(self):
         return "%s: %s" % (self.__class__, self.as_text())
 
 
-class Sentence(OpenCorporaBase):
+class Sentence(_OpenCorporaBase):
     """
     Sentence.
     """
@@ -56,7 +57,7 @@ class Sentence(OpenCorporaBase):
         return self.source()
 
 
-class Paragraph(OpenCorporaBase):
+class Paragraph(_OpenCorporaBase):
     """
     Text paragraph.
     """
@@ -75,9 +76,9 @@ class Paragraph(OpenCorporaBase):
         return ' '.join(sent.as_text() for sent in self.itersents())
 
 
-class Text(OpenCorporaBase):
+class Document(_OpenCorporaBase):
     """
-    Single OpenCorpora text.
+    Single OpenCorpora document.
     """
     def __init__(self, xml):
         self.root = xml
@@ -101,30 +102,30 @@ class Text(OpenCorporaBase):
         return "\n\n".join(para.as_text() for para in self.iterparas())
 
 
-class Corpora(OpenCorporaBase):
+class Corpora(_OpenCorporaBase):
     """
     OpenCorpora.ru corpora reader. Provides fast access to individual
-    texts without loading and parsing the whole XML; is capable of iterating
+    documents without loading and parsing the whole XML; is capable of iterating
     over individual paragraphs, sentences and tokens without loading
     all data to memory.
     """
     def __init__(self, filename):
         self.filename = filename
-        self._text_meta = OrderedDict()
-        self._populate_text_meta()
+        self._document_meta = OrderedDict()
+        self._populate_document_meta()
 
     def catalog(self):
         """
-        Returns information about texts in corpora:
-        a list of tuples (text_id, text_title).
+        Returns information about documents in corpora:
+        a list of tuples (doc_id, doc_title).
         """
-        return [(text_id, self._text_meta[text_id].title) for text_id in self._text_meta]
+        return [(doc_id, self._document_meta[doc_id].title) for doc_id in self._document_meta]
 
-    def get_text(self, text_id):
+    def get_document(self, doc_id):
         """
-        Returns Text object for a given text_id.
+        Returns Document object for a given doc_id.
         """
-        return Text(self._text_xml(text_id))
+        return Document(self._document_xml(doc_id))
 
     def itertokens(self):
         """
@@ -142,23 +143,23 @@ class Corpora(OpenCorporaBase):
             yield Paragraph(para)
 
 
-    def itertexts(self):
+    def iterdocuments(self):
         """
-        Returns an iterator over corpus texts.
+        Returns an iterator over corpus documentss.
         """
-        for text in xml_utils.iterparse(self.filename, 'text'):
-            yield Text(text)
+        for doc in xml_utils.iterparse(self.filename, 'text'):
+            yield Document(doc)
 
-    def texts(self):
+    def documents(self):
         """
-        Returns a list of all corpus texts.
+        Returns a list of all corpus documents.
 
         XXX: it can be very slow and memory-consuming; use
-        itertexts of get_text when possible.
+        iterdocuments of get_document when possible.
         """
-        return list(self.itertexts())
+        return list(self.iterdocuments())
 
-    def _populate_text_meta(self):
+    def _populate_document_meta(self):
         """
         Populates texts meta information cache for fast lookups.
         """
@@ -167,32 +168,32 @@ class Corpora(OpenCorporaBase):
             r'</text>',
         )
         for match, bounds in bounds_iter:
-            text_id, title = int(match.group(1)), match.group(2)
+            doc_id, title = int(match.group(1)), match.group(2)
             title = xml_utils.unescape_attribute(title)
-            self._text_meta[text_id] = _TextMeta(title, bounds)
+            self._document_meta[doc_id] = _DocumentMeta(title, bounds)
 
-    def _text_xml(self, text_id):
+    def _document_xml(self, doc_id):
         """
-        Returns xml Element for the text text_id.
+        Returns xml Element for the document document_id.
         """
-        text_str = self._get_text_by_raw_offset(text_id)
-        return ElementTree.XML(text_str.encode('utf8'))
+        doc_str = self._get_doc_by_raw_offset(doc_id)
+        return ElementTree.XML(doc_str.encode('utf8'))
 
-    def _get_text_by_raw_offset(self, text_id):
+    def _get_doc_by_raw_offset(self, doc_id):
         """
-        Loads text from xml using bytes offset information.
+        Loads document from xml using bytes offset information.
         XXX: this is not tested under Windows.
         """
-        bounds = self._text_meta[text_id].bounds
+        bounds = self._document_meta[doc_id].bounds
         return xml_utils.load_chunk(self.filename, bounds)
 
-    def _get_text_by_line_offset(self, text_id):
+    def _get_doc_by_line_offset(self, doc_id):
         """
-        Loads text from xml using line offset information.
-        This is much slower than _get_text_by_raw_offset but should
+        Loads document from xml using line offset information.
+        This is much slower than _get_doc_by_raw_offset but should
         work everywhere.
         """
-        bounds = self._text_meta[text_id].bounds
+        bounds = self._document_meta[doc_id].bounds
         return xml_utils.load_chunk(self.filename, bounds, slow=True)
 
 

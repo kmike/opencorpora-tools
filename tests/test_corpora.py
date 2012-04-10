@@ -15,7 +15,7 @@ class BaseTest(unittest.TestCase):
 
 class CorporaTest(BaseTest):
 
-    def test_text_meta(self):
+    def test_meta(self):
         self.assertEqual(self.corpus.catalog(), [
             (1, '"Частный корреспондент"'),
             (2, '00021 Школа злословия'),
@@ -24,24 +24,24 @@ class CorporaTest(BaseTest):
         ])
 
     def test_raw_loading(self):
-        loaded_raw = self.corpus._get_text_by_raw_offset(3)
-        loaded_line = self.corpus._get_text_by_line_offset(3) # this is reliable
+        loaded_raw = self.corpus._get_doc_by_raw_offset(3)
+        loaded_line = self.corpus._get_doc_by_line_offset(3) # this is reliable
         self.assertEqual(loaded_raw, loaded_line)
 
-    def test_single_text_xml(self):
-        xml = self.corpus._text_xml(3)
+    def test_single_doc_xml(self):
+        xml = self.corpus._document_xml(3)
         tokens = xml.findall('paragraphs//token')
         self.assertEqual(tokens[17].get('text'), 'арт-группы')
 
-    def test_texts_xml(self):
-        text = self.corpus.texts()[2]
-        tokens = text.tokens()
+    def test_doc_xml(self):
+        doc = self.corpus.documents()[2]
+        tokens = doc.tokens()
         self.assertTrue(tokens)
         self.assertEqual(tokens[17], 'арт-группы')
 
 
-    def test_text_titles(self):
-        titles = [text.title() for text in self.corpus.itertexts()]
+    def test_titles(self):
+        titles = [doc.title() for doc in self.corpus.iterdocuments()]
         catalog_titles = list(dict(self.corpus.catalog()).values())
         self.assertEqual(titles, catalog_titles)
 
@@ -75,15 +75,15 @@ class CorporaTest(BaseTest):
 class TextTest(BaseTest):
 
     def test_tokens(self):
-        self.assertEqual(self.corpus.get_text(1).tokens(), [])
+        self.assertEqual(self.corpus.get_document(1).tokens(), [])
 
-        tokens = self.corpus.get_text(2).tokens()
+        tokens = self.corpus.get_document(2).tokens()
 
         self.assertEqual(len(tokens), 1027)
         self.assertEqual(tokens[9], 'градус')
 
     def test_sents(self):
-        sents = self.corpus.get_text(2).sents()
+        sents = self.corpus.get_document(2).sents()
         self.assertEqual(len(sents), 44)
         self.assertEqual(sents[1].as_text(), 'Сохранится ли градус дискуссии в новом сезоне?')
 
