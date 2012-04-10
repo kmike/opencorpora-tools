@@ -15,6 +15,10 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
+try:
+    from urllib.request import urlopen
+except ImportError:
+    from urllib2 import urlopen
 
 def utf8_for_PY2(func):
     if PY3:
