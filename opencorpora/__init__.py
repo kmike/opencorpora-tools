@@ -111,15 +111,20 @@ class Corpora(_OpenCorporaBase):
     """
     def __init__(self, filename):
         self.filename = filename
-        self._document_meta = OrderedDict()
-        self._populate_document_meta()
+        self._document_meta = None
 
     def catalog(self):
         """
         Returns information about documents in corpora:
         a list of tuples (doc_id, doc_title).
         """
-        return [(doc_id, self._document_meta[doc_id].title) for doc_id in self._document_meta]
+        doc_meta = self._get_meta()
+        return [(doc_id, doc_meta[doc_id].title) for doc_id in doc_meta]
+
+    def _get_meta(self):
+        if self._document_meta is None:
+            self._populate_document_meta()
+        return self._document_meta
 
     def get_document(self, doc_id):
         """
@@ -163,6 +168,7 @@ class Corpora(_OpenCorporaBase):
         """
         Populates texts meta information cache for fast lookups.
         """
+        self._document_meta = OrderedDict()
         bounds_iter = xml_utils.bounds(self.filename,
             r'<text id="(\d+)"[^>]*name="([^"]*)"',
             r'</text>',
@@ -184,7 +190,7 @@ class Corpora(_OpenCorporaBase):
         Loads document from xml using bytes offset information.
         XXX: this is not tested under Windows.
         """
-        bounds = self._document_meta[doc_id].bounds
+        bounds = self._get_meta()[doc_id].bounds
         return xml_utils.load_chunk(self.filename, bounds)
 
     def _get_doc_by_line_offset(self, doc_id):
@@ -193,7 +199,7 @@ class Corpora(_OpenCorporaBase):
         This is much slower than _get_doc_by_raw_offset but should
         work everywhere.
         """
-        bounds = self._document_meta[doc_id].bounds
+        bounds = self._get_meta()[doc_id].bounds
         return xml_utils.load_chunk(self.filename, bounds, slow=True)
 
 
