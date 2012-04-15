@@ -20,6 +20,11 @@ try:
 except ImportError:
     from urllib2 import urlopen
 
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+
 def utf8_for_PY2(func):
     if PY3:
         return func

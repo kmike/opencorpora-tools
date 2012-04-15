@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, division
 from collections import namedtuple
-from .compat import ElementTree, OrderedDict, utf8_for_PY2
+from .compat import ElementTree, OrderedDict, utf8_for_PY2, pickle
 from . import xml_utils
 
 _DocumentMeta = namedtuple('_DocumentMeta', 'title bounds')
@@ -109,9 +109,11 @@ class Corpora(_OpenCorporaBase):
     over individual paragraphs, sentences and tokens without loading
     all data to memory.
     """
-    def __init__(self, filename):
+    def __init__(self, filename, cache_filename=None, use_cache=True):
         self.filename = filename
+        self.use_cache = use_cache
         self._document_meta = None
+        self._cache_filename = cache_filename or filename+'.cache'
 
     def catalog(self):
         """
@@ -122,9 +124,37 @@ class Corpora(_OpenCorporaBase):
         return [(doc_id, doc_meta[doc_id].title) for doc_id in doc_meta]
 
     def _get_meta(self):
+
+        if self._document_meta is None and self.use_cache:
+            self._load_meta_cache()
+
         if self._document_meta is None:
-            self._populate_document_meta()
+            self._document_meta = self._load_document_meta()
+            if self.use_cache:
+                self._create_meta_cache()
+
         return self._document_meta
+
+    def _create_meta_cache(self):
+        """
+        Tries to dump metadata to a file.
+        """
+        try:
+            with open(self._cache_filename, 'wb') as f:
+                pickle.dump(self._document_meta, f, pickle.HIGHEST_PROTOCOL)
+        except (IOError, pickle.PickleError):
+            pass
+
+    def _load_meta_cache(self):
+        """
+        Tries to load metadata from file.
+        """
+        try:
+            with open(self._cache_filename, 'rb') as f:
+                self._document_meta = pickle.load(f)
+        except (IOError, pickle.PickleError, ImportError, AttributeError):
+            pass
+
 
     def get_document(self, doc_id):
         """
@@ -164,11 +194,13 @@ class Corpora(_OpenCorporaBase):
         """
         return list(self.iterdocuments())
 
-    def _populate_document_meta(self):
+    def _load_document_meta(self):
         """
-        Populates texts meta information cache for fast lookups.
+        Returns documents meta information that can
+        be used for fast document lookups. Meta information
+        consists of documents titles and positions in file.
         """
-        self._document_meta = OrderedDict()
+        meta = OrderedDict()
         bounds_iter = xml_utils.bounds(self.filename,
             r'<text id="(\d+)"[^>]*name="([^"]*)"',
             r'</text>',
@@ -176,7 +208,8 @@ class Corpora(_OpenCorporaBase):
         for match, bounds in bounds_iter:
             doc_id, title = int(match.group(1)), match.group(2)
             title = xml_utils.unescape_attribute(title)
-            self._document_meta[doc_id] = _DocumentMeta(title, bounds)
+            meta[doc_id] = _DocumentMeta(title, bounds)
+        return meta
 
     def _document_xml(self, doc_id):
         """
