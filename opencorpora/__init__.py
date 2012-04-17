@@ -13,7 +13,7 @@ class _OpenCorporaBase(object):
     def iterparas(self):
         raise NotImplementedError()
 
-    def itertokens(self):
+    def iterwords(self):
         raise NotImplementedError()
 
     def itersents(self):
@@ -23,15 +23,15 @@ class _OpenCorporaBase(object):
     def paras(self):
         return list(self.iterparas())
 
-    def tokens(self):
-        return list(self.itertokens())
+    def words(self):
+        return list(self.iterwords())
 
     def sents(self):
         return list(self.itersents())
 
 
     def as_text(self):
-        return ' '.join(self.itertokens())
+        return ' '.join(self.iterwords())
 
     # XXX: does this work under windows?
     @utf8_for_PY2
@@ -46,7 +46,7 @@ class Sentence(_OpenCorporaBase):
     def __init__(self, xml):
         self.root = xml
 
-    def itertokens(self):
+    def iterwords(self):
         for token in self.root.findall('tokens//token'):
             yield token.get('text')
 
@@ -64,7 +64,7 @@ class Paragraph(_OpenCorporaBase):
     def __init__(self, xml):
         self.root = xml
 
-    def itertokens(self):
+    def iterwords(self):
         for token in self.root.findall('sentence//token'):
             yield token.get('text')
 
@@ -86,7 +86,7 @@ class Document(_OpenCorporaBase):
     def title(self):
         return self.root.get('name')
 
-    def itertokens(self):
+    def iterwords(self):
         for token in self.root.findall('paragraphs//token'):
             yield token.get('text')
 
@@ -162,7 +162,7 @@ class Corpora(_OpenCorporaBase):
         """
         return Document(self._document_xml(doc_id))
 
-    def itertokens(self):
+    def iterwords(self):
         """
         Returns an iterator over corpus tokens.
         """
@@ -235,11 +235,6 @@ class Corpora(_OpenCorporaBase):
         bounds = self._get_meta()[doc_id].bounds
         return xml_utils.load_chunk(self.filename, bounds, slow=True)
 
-
-#
-#    def words(self):
-#        # list of str
-#        pass
 #
 #    def sents(self):
 #        # list of (list of str)

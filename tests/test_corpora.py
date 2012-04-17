@@ -40,9 +40,9 @@ class CorporaTest(BaseTest):
 
     def test_doc_xml(self):
         doc = self.corpus.documents()[2]
-        tokens = doc.tokens()
-        self.assertTrue(tokens)
-        self.assertEqual(tokens[17], 'арт-группы')
+        words = doc.words()
+        self.assertTrue(words)
+        self.assertEqual(words[17], 'арт-группы')
 
 
     def test_titles(self):
@@ -51,22 +51,22 @@ class CorporaTest(BaseTest):
         self.assertEqual(titles, catalog_titles)
 
     def test_tokens(self):
-        tokens = self.corpus.tokens()
-        self.assertEqual(len(tokens), 2358)
+        words = self.corpus.words()
+        self.assertEqual(len(words), 2358)
 
         # check some random tokens
-        self.assertEqual(tokens[344], 'социально-исторического')
-        self.assertEqual(tokens[430], ':')
-        self.assertEqual(tokens[967], 'Школа')
-        self.assertEqual(tokens[2225], '«')
-        self.assertEqual(tokens[2322], 'крэнк')
+        self.assertEqual(words[344], 'социально-исторического')
+        self.assertEqual(words[430], ':')
+        self.assertEqual(words[967], 'Школа')
+        self.assertEqual(words[2225], '«')
+        self.assertEqual(words[2322], 'крэнк')
 
     def test_paras(self):
         paras = self.corpus.paras()
         self.assertEqual(len(paras), 41)
 
         for para in paras:
-            self.assertTrue(para.tokens())
+            self.assertTrue(para.words())
             self.assertTrue(para.sents())
 
     def test_sents(self):
@@ -74,18 +74,18 @@ class CorporaTest(BaseTest):
         self.assertEqual(len(sents), 102)
 
         for sent in sents:
-            self.assertTrue(sent.tokens())
+            self.assertTrue(sent.words())
 
 
 class TextTest(BaseTest):
 
     def test_tokens(self):
-        self.assertEqual(self.corpus.get_document(1).tokens(), [])
+        self.assertEqual(self.corpus.get_document(1).words(), [])
 
-        tokens = self.corpus.get_document(2).tokens()
+        words = self.corpus.get_document(2).words()
 
-        self.assertEqual(len(tokens), 1027)
-        self.assertEqual(tokens[9], 'градус')
+        self.assertEqual(len(words), 1027)
+        self.assertEqual(words[9], 'градус')
 
     def test_sents(self):
         sents = self.corpus.get_document(2).sents()
