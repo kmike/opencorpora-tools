@@ -113,7 +113,7 @@ class Corpora(_OpenCorporaBase):
         self.filename = filename
         self.use_cache = use_cache
         self._document_meta = None
-        self._cache_filename = cache_filename or filename+'.cache'
+        self._cache_filename = cache_filename or filename+'.~'
 
     def catalog(self):
         """

@@ -2,7 +2,8 @@
 from __future__ import absolute_import, print_function, division, unicode_literals
 import os
 import unittest
-from opencorpora.compat import ElementTree
+import tempfile
+import shutil
 
 import opencorpora
 
@@ -10,8 +11,12 @@ TEST_DATA = os.path.join(os.path.dirname(__file__), 'annot.opcorpora.test.xml')
 
 class BaseTest(unittest.TestCase):
     def setUp(self):
-        self.corpus = opencorpora.Corpora(TEST_DATA)
+        self.temp_dir = tempfile.mkdtemp()
+        cache_filename = os.path.join(self.temp_dir, 'corpora.cache')
+        self.corpus = opencorpora.Corpora(TEST_DATA, cache_filename=cache_filename)
 
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir)
 
 class CorporaTest(BaseTest):
 
