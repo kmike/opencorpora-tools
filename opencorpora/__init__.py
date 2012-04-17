@@ -115,6 +115,9 @@ class Corpora(_OpenCorporaBase):
         self._document_meta = None
         self._cache_filename = cache_filename or filename+'.~'
 
+    def readme(self):
+        return self.__doc__
+
     def catalog(self):
         """
         Returns information about documents in corpora:
