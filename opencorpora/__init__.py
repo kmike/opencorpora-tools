@@ -38,6 +38,13 @@ class _OpenCorporaBase(object):
     def __repr__(self):
         return "%s: %s" % (self.__class__, self.as_text())
 
+    @utf8_for_PY2
+    def __str__(self):
+        return self.as_text()
+
+    def __unicode__(self):
+        return self.as_text()
+
 
 class Sentence(_OpenCorporaBase):
     """
@@ -55,6 +62,14 @@ class Sentence(_OpenCorporaBase):
 
     def as_text(self):
         return self.source()
+
+    def __len__(self):
+        return len(self.words())
+
+    def __getitem__(self, key):
+        return self.words()[key]
+
+    __iter__ = iterwords
 
 
 class Paragraph(_OpenCorporaBase):
@@ -74,6 +89,15 @@ class Paragraph(_OpenCorporaBase):
 
     def as_text(self):
         return ' '.join(sent.as_text() for sent in self.itersents())
+
+    def __len__(self):
+        return len(self.sents())
+
+    def __getitem__(self, key):
+        return self.sents()[key]
+
+    __iter__ = itersents
+
 
 
 class Document(_OpenCorporaBase):
@@ -100,6 +124,15 @@ class Document(_OpenCorporaBase):
 
     def as_text(self):
         return "\n\n".join(para.as_text() for para in self.iterparas())
+
+    def __len__(self):
+        return len(self.paras())
+
+    def __getitem__(self, key):
+        return self.paras()[key]
+
+    __iter__ = iterparas
+
 
 
 class Corpora(_OpenCorporaBase):

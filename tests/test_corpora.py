@@ -50,7 +50,7 @@ class CorporaTest(BaseTest):
         catalog_titles = list(dict(self.corpus.catalog()).values())
         self.assertEqual(titles, catalog_titles)
 
-    def test_tokens(self):
+    def test_words(self):
         words = self.corpus.words()
         self.assertEqual(len(words), 2358)
 
@@ -77,9 +77,9 @@ class CorporaTest(BaseTest):
             self.assertTrue(sent.words())
 
 
-class TextTest(BaseTest):
+class DocumentTest(BaseTest):
 
-    def test_tokens(self):
+    def test_words(self):
         self.assertEqual(self.corpus.get_document(1).words(), [])
 
         words = self.corpus.get_document(2).words()
@@ -91,5 +91,13 @@ class TextTest(BaseTest):
         sents = self.corpus.get_document(2).sents()
         self.assertEqual(len(sents), 44)
         self.assertEqual(sents[1].as_text(), 'Сохранится ли градус дискуссии в новом сезоне?')
+
+    def test_magic(self):
+        doc = self.corpus.get_document(3)
+        self.assertEqual(len(doc), 6) # 6 paragraphs
+        para = doc[2]
+        self.assertEqual(len(para), 2) # 2 sentences
+        self.assertEqual(para[1][0], 'Примечательно')
+
 
 
