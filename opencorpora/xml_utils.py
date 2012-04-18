@@ -70,3 +70,7 @@ def _load_chunk_slow(filename, bounds, encoding='utf8'):
             if index >= bounds.line_end:
                 break
     return ''.join(lines)
+
+def ET_to_lxml(element):
+    import lxml.etree
+    return lxml.etree.fromstring(ElementTree.tostring(element))
