@@ -13,7 +13,7 @@ class CliTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile() as f:
             class Args(object):
                 output = f.name
-                decompress = False
+                no_decompress = False
                 url = ''
             args = Args()
             cli.download(args)

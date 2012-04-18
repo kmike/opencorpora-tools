@@ -22,7 +22,7 @@ parser_download = subparsers.add_parser('download',
 )
 parser_download.add_argument('-o', '--output', type=str, help='destination file', default=DEFAULT_OUT_FILE)
 parser_download.add_argument('--url', help='download url', default=CORPORA_URL_BZ2)
-parser_download.add_argument('--decompress',  help='decompress', action='store_true')
+parser_download.add_argument('--no-decompress',  help='do not decompress data', action='store_true')
 
 def _download(url, out_fp, decompress=True, chunk_size=CHUNK_SIZE, on_chunk=lambda:None):
     decompressor = bz2.BZ2Decompressor()
@@ -41,7 +41,8 @@ def _download(url, out_fp, decompress=True, chunk_size=CHUNK_SIZE, on_chunk=lamb
 
 def download(args):
     out_file = args.output
-    if args.decompress and out_file == DEFAULT_OUT_FILE:
+    decompress = not args.no_decompress
+    if decompress and out_file == DEFAULT_OUT_FILE:
         out_file = DEFAULT_OUT_FILE[:-4]
 
     print('Creating %s from %s' % (out_file, args.url))
@@ -51,7 +52,7 @@ def download(args):
             sys.stdout.write('.')
             sys.stdout.flush()
 
-        _download(args.url, out, args.decompress, on_chunk=on_chunk)
+        _download(args.url, out, decompress, on_chunk=on_chunk)
 
     print('\nDone.')
 
