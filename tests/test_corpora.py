@@ -100,7 +100,7 @@ class DocumentTest(BaseTest):
         self.assertEqual(para[1][0], 'Примечательно')
 
 
-class TaggedTest(BaseTest):
+class TaggedWordsTest(BaseTest):
 
     def assertTaggedAreTheSame(self, obj):
         words, tagged_words = obj.words(), obj.tagged_words()
@@ -146,3 +146,4 @@ class TaggedTest(BaseTest):
             ('канале', 'NOUN inan masc sing loct'),
         ])
         self.assertTaggedAreTheSame(sent)
+

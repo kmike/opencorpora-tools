@@ -2,8 +2,14 @@
 from __future__ import absolute_import
 import sys
 import functools
+import itertools
 
 PY3 = sys.version_info[0] == 3
+
+if PY3:
+    imap = map
+else:
+    imap = itertools.imap
 
 try:
     from xml.etree import cElementTree as ElementTree

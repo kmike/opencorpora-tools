@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, division
 from collections import namedtuple
-from .compat import ElementTree, OrderedDict, utf8_for_PY2, pickle
+from .compat import ElementTree, OrderedDict, utf8_for_PY2, pickle, imap
 from . import xml_utils
 
 _DocumentMeta = namedtuple('_DocumentMeta', 'title bounds')
@@ -28,8 +28,7 @@ class _OpenCorporaBase(object):
         return self.root.findall('*//token')
 
     def iterwords(self):
-        for token in self._itertokens():
-            yield token.get('text')
+        return (token.get('text') for token in self._itertokens())
 
     def itersents(self):
         raise NotImplementedError()
@@ -43,6 +42,12 @@ class _OpenCorporaBase(object):
             word = token.get('text')
             lemma, tags = _first_tags(token)
             yield word, " ".join(tags)
+
+    def iter_tagged_sents(self):
+        return (sent.tagged_words() for sent in self.itersents())
+
+    def iter_tagged_paras(self):
+        return (para.tagged_sents() for para in self.iterparas())
 
 
     def words(self):
@@ -58,6 +63,11 @@ class _OpenCorporaBase(object):
     def tagged_words(self):
         return list(self.iter_tagged_words())
 
+    def tagged_sents(self):
+        return list(self.iter_tagged_sents())
+
+    def tagged_paras(self):
+        return list(self.iter_tagged_paras())
 
     def as_text(self):
         return ' '.join(self.iterwords())
@@ -94,8 +104,7 @@ class Sentence(_OpenCorporaBase):
         return self.words()[key]
 
     def __iter__(self):
-        for word in self.iterwords():
-            yield word
+        return (word for word in self.iterwords())
 
 
 class Paragraph(_OpenCorporaBase):
@@ -106,8 +115,7 @@ class Paragraph(_OpenCorporaBase):
         self.root = xml
 
     def itersents(self):
-        for sent in self.root.findall('sentence'):
-            yield Sentence(sent)
+        return imap(Sentence, self.root.findall('sentence'))
 
     def as_text(self):
         return ' '.join(sent.as_text() for sent in self.itersents())
@@ -133,12 +141,10 @@ class Document(_OpenCorporaBase):
         return self.root.get('name')
 
     def iterparas(self):
-        for para in self.root.findall('paragraphs/paragraph'):
-            yield Paragraph(para)
+        return imap(Paragraph, self.root.findall('paragraphs/paragraph'))
 
     def itersents(self):
-        for sent in self.root.findall('paragraphs//sentence'):
-            yield Sentence(sent)
+        return imap(Sentence, self.root.findall('paragraphs//sentence'))
 
     def as_text(self):
         return "\n\n".join(para.as_text() for para in self.iterparas())
@@ -230,20 +236,17 @@ class Corpora(_OpenCorporaBase):
             token.clear()
 
     def itersents(self):
-        for sent in xml_utils.iterparse(self.filename, 'sentence'):
-            yield Sentence(sent)
+        return imap(Sentence, xml_utils.iterparse(self.filename, 'sentence'))
 
     def iterparas(self):
-        for para in xml_utils.iterparse(self.filename, 'paragraph'):
-            yield Paragraph(para)
+        return imap(Paragraph, xml_utils.iterparse(self.filename, 'paragraph'))
 
 
     def iterdocuments(self):
         """
         Returns an iterator over corpus documents.
         """
-        for doc in xml_utils.iterparse(self.filename, 'text'):
-            yield Document(doc)
+        return imap(Document, xml_utils.iterparse(self.filename, 'text'))
 
     def documents(self):
         """
@@ -297,13 +300,3 @@ class Corpora(_OpenCorporaBase):
 
     __getitem__ = get_document
     __iter__ = iterdocuments
-
-#
-#    def tagged_sents(self):
-#        # list of (list of (str,str))
-#        pass
-#
-#    def tagged_paras(self):
-#        # list of (list of (list of (str,str)))
-#        pass
-#
