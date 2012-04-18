@@ -6,28 +6,57 @@ from . import xml_utils
 
 _DocumentMeta = namedtuple('_DocumentMeta', 'title bounds')
 
+def _xml_tags_to_list(l_element):
+    return [tag.get('v') for tag in l_element.getchildren()]
+
+def _token_info(token_element):
+    for lemma in token_element.findall('*//l'):
+        yield lemma.get('t'), _xml_tags_to_list(lemma)
+
+def _first_tags(token_element):
+    lemma = token_element.find('*//l')
+    if lemma is None:
+        return None, []
+    return lemma.get('t'), _xml_tags_to_list(lemma)
+
 class _OpenCorporaBase(object):
     """
     Common interface for OpenCorpora objects.
     """
-    def iterparas(self):
-        raise NotImplementedError()
+    def _itertokens(self):
+        # subclass should define self.root Element for this to work
+        return self.root.findall('*//token')
 
     def iterwords(self):
-        raise NotImplementedError()
+        for token in self._itertokens():
+            yield token.get('text')
 
     def itersents(self):
         raise NotImplementedError()
 
+    def iterparas(self):
+        raise NotImplementedError()
 
-    def paras(self):
-        return list(self.iterparas())
+
+    def iter_tagged_words(self):
+        for token in self._itertokens():
+            word = token.get('text')
+            lemma, tags = _first_tags(token)
+            yield word, " ".join(tags)
+
 
     def words(self):
         return list(self.iterwords())
 
     def sents(self):
         return list(self.itersents())
+
+    def paras(self):
+        return list(self.iterparas())
+
+
+    def tagged_words(self):
+        return list(self.iter_tagged_words())
 
 
     def as_text(self):
@@ -45,17 +74,12 @@ class _OpenCorporaBase(object):
     def __unicode__(self):
         return self.as_text()
 
-
 class Sentence(_OpenCorporaBase):
     """
     Sentence.
     """
     def __init__(self, xml):
         self.root = xml
-
-    def iterwords(self):
-        for token in self.root.findall('tokens//token'):
-            yield token.get('text')
 
     def source(self):
         return self.root.find('source').text
@@ -69,7 +93,9 @@ class Sentence(_OpenCorporaBase):
     def __getitem__(self, key):
         return self.words()[key]
 
-    __iter__ = iterwords
+    def __iter__(self):
+        for word in self.iterwords():
+            yield word
 
 
 class Paragraph(_OpenCorporaBase):
@@ -78,10 +104,6 @@ class Paragraph(_OpenCorporaBase):
     """
     def __init__(self, xml):
         self.root = xml
-
-    def iterwords(self):
-        for token in self.root.findall('sentence//token'):
-            yield token.get('text')
 
     def itersents(self):
         for sent in self.root.findall('sentence'):
@@ -109,10 +131,6 @@ class Document(_OpenCorporaBase):
 
     def title(self):
         return self.root.get('name')
-
-    def iterwords(self):
-        for token in self.root.findall('paragraphs//token'):
-            yield token.get('text')
 
     def iterparas(self):
         for para in self.root.findall('paragraphs/paragraph'):
@@ -199,12 +217,17 @@ class Corpora(_OpenCorporaBase):
         """
         return Document(self._document_xml(doc_id))
 
-    def iterwords(self):
-        """
-        Returns an iterator over corpus tokens.
-        """
-        for token in xml_utils.iterparse(self.filename, 'token', clear=True):
-            yield token.get('text')
+    def _itertokens(self):
+        return xml_utils.iterparse(self.filename, 'token', clear=True)
+
+    def iter_tagged_words(self):
+        # we have to override this because tokens returned by
+        # _itertokens intentionally doesn't have children elements available
+        for token in xml_utils.iterparse(self.filename, 'token', clear=False):
+            word = token.get('text')
+            lemma, tags = _first_tags(token)
+            yield word, " ".join(tags)
+            token.clear()
 
     def itersents(self):
         for sent in xml_utils.iterparse(self.filename, 'sentence'):
@@ -275,10 +298,6 @@ class Corpora(_OpenCorporaBase):
     __getitem__ = get_document
     __iter__ = iterdocuments
 
-#
-#    def tagged_words(self):
-#        # list of (str,str) tuple
-#        pass
 #
 #    def tagged_sents(self):
 #        # list of (list of (str,str))

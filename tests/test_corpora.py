@@ -100,4 +100,49 @@ class DocumentTest(BaseTest):
         self.assertEqual(para[1][0], 'Примечательно')
 
 
+class TaggedTest(BaseTest):
 
+    def assertTaggedAreTheSame(self, obj):
+        words, tagged_words = obj.words(), obj.tagged_words()
+
+        for word, tagged_word in zip(words, tagged_words):
+            self.assertEqual(word, tagged_word[0])
+
+        self.assertEqual(len(words), len(tagged_words))
+
+
+    def test_corpus(self):
+        words = self.corpus.tagged_words()
+        self.assertEqual(words[:2], [
+            ('«', 'UNKN'),
+            ('Школа', 'NOUN inan femn sing nomn'),
+        ])
+        self.assertTaggedAreTheSame(self.corpus)
+
+    def test_document(self):
+        doc = self.corpus.get_document(2)
+        words = doc.tagged_words()
+        self.assertEqual(words[:2], [
+            ('«', 'UNKN'),
+            ('Школа', 'NOUN inan femn sing nomn'),
+        ])
+        self.assertTaggedAreTheSame(doc)
+
+    def test_paragraph(self):
+        para = self.corpus.get_document(2)[3]
+        words = para.tagged_words()
+        self.assertEqual(len(para.words()), len(para.tagged_words()))
+        self.assertEqual(words[2:4], [
+            ('на', 'PREP'),
+            ('канале', 'NOUN inan masc sing loct'),
+        ])
+        self.assertTaggedAreTheSame(para)
+
+    def test_sentence(self):
+        sent = self.corpus.get_document(2)[3][0]
+        words = sent.tagged_words()
+        self.assertEqual(words[2:4], [
+            ('на', 'PREP'),
+            ('канале', 'NOUN inan masc sing loct'),
+        ])
+        self.assertTaggedAreTheSame(sent)
