@@ -195,6 +195,7 @@ class Corpora(_OpenCorporaBase):
     def get_document(self, doc_id):
         """
         Returns Document object for a given doc_id.
+        This is also available as corpus[doc_id].
         """
         return Document(self._document_xml(doc_id))
 
@@ -216,7 +217,7 @@ class Corpora(_OpenCorporaBase):
 
     def iterdocuments(self):
         """
-        Returns an iterator over corpus documentss.
+        Returns an iterator over corpus documents.
         """
         for doc in xml_utils.iterparse(self.filename, 'text'):
             yield Document(doc)
@@ -271,14 +272,9 @@ class Corpora(_OpenCorporaBase):
         bounds = self._get_meta()[doc_id].bounds
         return xml_utils.load_chunk(self.filename, bounds, slow=True)
 
-#
-#    def sents(self):
-#        # list of (list of str)
-#        pass
-#
-#    def paras(self):
-#        #list of (list of (list of str))
-#        pass
+    __getitem__ = get_document
+    __iter__ = iterdocuments
+
 #
 #    def tagged_words(self):
 #        # list of (str,str) tuple
