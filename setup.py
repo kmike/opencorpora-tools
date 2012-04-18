@@ -6,7 +6,12 @@ for cmd in ('egg_info', 'develop'):
     if cmd in sys.argv:
         from setuptools import setup
 
-__version__ = '0.0'
+__version__ = '0.1'
+
+PY3 = sys.version_info[0] == 3
+if not PY3:
+    reload(sys)
+    sys.setdefaultencoding("utf-8")
 
 setup(
     name = 'opencorpora-tools',
@@ -24,7 +29,7 @@ setup(
     requires = ['argparse', 'ordereddict'],
 
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: MIT License',
