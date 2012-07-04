@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, division
+import os
 from collections import namedtuple
 from .compat import ElementTree, OrderedDict, utf8_for_PY2, pickle, imap
 from . import xml_utils
@@ -210,9 +211,12 @@ class Corpora(_OpenCorporaBase):
         Tries to load metadata from file.
         """
         try:
-            with open(self._cache_filename, 'rb') as f:
-                self._document_meta = pickle.load(f)
-        except (IOError, pickle.PickleError, ImportError, AttributeError):
+            if os.path.getmtime(self.filename) > os.path.getmtime(self._cache_filename):
+                os.remove(self._cache_filename)
+            else:
+                with open(self._cache_filename, 'rb') as f:
+                    self._document_meta = pickle.load(f)
+        except (OSError, IOError, pickle.PickleError, ImportError, AttributeError):
             pass
 
 
