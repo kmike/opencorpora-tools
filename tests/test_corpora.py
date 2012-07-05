@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, division, unicode_literals
 import os
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
+
 import tempfile
 import shutil
 from opencorpora.compat import OrderedDict
