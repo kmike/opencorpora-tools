@@ -11,7 +11,7 @@ Installation
 
     pip install opencorpora-tools
 
-If you have python < 2.7 then argparse and ordereddict packages are required::
+If you have python 2.6 then argparse and ordereddict packages are required::
 
     pip install argparse
     pip install ordereddict
@@ -39,73 +39,35 @@ Initialize::
     >>> import opencorpora
     >>> corpus = opencorpora.Corpora('annot.opcorpora.xml')
 
-Get a list of documents::
+Get table of contents::
 
-    >>> catalog = corpus.catalog()
-    >>> doc_id, doc_title = catalog[1590]
-    >>> print doc_id
-    1610
-
-    >>> doc_title
-    24105 Герман Греф советует россиянам «не суетиться» с валютой
-
-Work with a document::
-
-    >>> doc = corpus[1610]
-    >>> print doc.title()
-    24105 Герман Греф советует россиянам «не суетиться» с валютой
-
-    >>> print doc.words()[11]
-    Сбербанка
-
-    >>> doc.sents()[0]
-    <class 'opencorpora.Sentence'>: Герман Греф советует россиянам «не суетиться» с валютой
-
-    >>> print doc.paras()[0]
-    Герман Греф советует россиянам «не суетиться» с валютой Президент Сбербанка уверен, что в ближайшее время на валютных рынках сохранится высокая волатильность и «шараханье».
-
-
-
-``Corpora``, ``Document``, ``Paragraph`` and ``Sentence`` classes support
-the following methods (when it make sense, e.g. sentence doesn't have paragraphs):
-
-* ``words()`` - returns a list of words and other tokens;
-* ``sents()`` - returns a list of ``Sentence`` instances;
-* ``paras()`` - returns a list of ``Paragraph`` instances;
-* ``documents()`` - returns a list of ``Document`` instances (this is memory hog!);
-* ``tagged_words()`` - returns a list of (str, str);
-* ``tagged_sents()`` - returns a list of (list of (str, str));
-* ``tagged_paras()`` - returns a list of (list of (list of (str, str)));
-* ``iterwords()``, ``itersents()``, ``iterparas()``, ``iterdocuments()``,
-  ``iter_tagged_words``, ``iter_tagged_sents``, ``iter_tagged_paras`` - return
-  iterators over words, sentences, paragraphs or documents;
-
-You can also iterate over ``Corpora``, ``Document``, ``Paragraph`` and ``Sentence``
-(this yields documents, paragraphs, sentences and words), e.g.::
-
-    >>> sent = doc.sents()[0]
-    >>> for word in sent:
-    ...     print word
+    >>> corpus.catalog()
+    [('1', '"Частный корреспондент"'),
+     ('2', '00021 Школа злословия'),
+     ('3', '00022 Последнее восстание в Сеуле'),
+     ('4', '00023 За кота - ответишь!'),
     ...
-    Герман
-    Греф
-    советует
-    россиянам
-    «
-    не
-    суетиться
-    »
-    с
-    валютой
 
+Work with documents::
 
-The API is modelled after NLTK's CorpusReader API.
+    >>> seoul_words = corpus.words('3')
+    >>> seoul_words
+    ['«', 'Последнее', 'восстание', '»', 'в', 'Сеуле', ...
+
+    >>> corpus.documents(categories='Тема:ЧасКор:Книги*')
+    [Document: 21759 2001-2010-й: книги, которые потрясали,
+     Document: 12824 86 снов, вызванных полётом пчелы вокруг граната за секунду до пробуждения,
+     Document: 10930 А бойтесь единственно только того, кто скажет: «Я знаю, как надо!»,
+     ...
+
+``opencorpora.Corpora`` is modelled after NLTK's CorpusReader interface;
+consult with http://nltk.googlecode.com/svn/trunk/doc/book/ch02.html to
+get an idea how to work with the API.
 
 It it not exactly the same, but is very similar. E.g. ``sents()`` in
 opencorpora-tools returns a list of ``Sentence`` instances and ``sents()``
 in NLTK returns a list of list of strings, but ``Sentence`` instances quacks
-like a list of strings (it can be indexed, iterated, etc.) so
-``opencorpora.Corpora`` API may be seen as a superset of NLTK CorpusReader API.
+like a list of strings (it can be indexed, iterated, etc.).
 
 
 Performance
@@ -125,7 +87,7 @@ opencorpora-tools handles it this way:
    Consider document loading O(1) regarding XML size. Individual documents
    are not huge so they and loaded and parsed as usual.
 
-2. There are iterator methods for all corpora API.
+2. There are iterator methods for all corpora API (``corpus.iterwords``, etc).
 
 
 Development
@@ -149,4 +111,5 @@ Make sure `tox <http://tox.testrun.org>`_ is installed and run
 
     $ tox
 
-from the source checkout. Tests should pass under python 2.6..3.2 and pypy > 1.8.
+from the source checkout. Tests should pass under python 2.6..3.2
+and pypy > 1.8.
