@@ -2,12 +2,11 @@
 from __future__ import absolute_import, print_function, division
 import os
 import itertools
+import fnmatch
 from collections import namedtuple
 from opencorpora import compat, xml_utils
-#from .compat import ElementTree, OrderedDict, utf8_for_PY2, pickle, imap, string_types
-from . import xml_utils
 
-_DocumentMeta = namedtuple('_DocumentMeta', 'title bounds')
+_DocumentMeta = namedtuple('_DocumentMeta', 'title bounds categories')
 
 def _xml_tags_to_list(l_element):
     return [tag.get('v') for tag in l_element.getchildren()]
@@ -22,10 +21,19 @@ def _first_tags(token_element):
         return None, []
     return lemma.get('t'), _xml_tags_to_list(lemma)
 
-def _make_iterable(fileids):
-    if isinstance(fileids, (compat.string_types, compat.integer_types)):
-        fileids = [fileids]
-    return fileids
+def _make_iterable(obj, default=None):
+    if obj is None:
+        return default or []
+    if isinstance(obj, (compat.string_types, compat.integer_types)):
+        return [obj]
+    return obj
+
+def _some_items_match(items, patterns):
+    return any(
+        fnmatch.fnmatchcase(item, pattern)
+        for item in items
+        for pattern in patterns
+    )
 
 class _OpenCorporaBase(object):
     """
@@ -117,7 +125,6 @@ class Sentence(_OpenCorporaBase):
     def __iter__(self):
         return (word for word in self.iterwords())
 
-
 class Paragraph(_OpenCorporaBase):
     """
     Text paragraph.
@@ -139,8 +146,6 @@ class Paragraph(_OpenCorporaBase):
 
     __iter__ = itersents
 
-
-
 class Document(_OpenCorporaBase):
     """
     Single OpenCorpora document.
@@ -150,6 +155,9 @@ class Document(_OpenCorporaBase):
 
     def title(self):
         return self.root.get('name')
+
+    def categories(self):
+        return [tag.text for tag in self.root.findall('tags//tag')]
 
     def iterparas(self):
         return compat.imap(Paragraph, self.root.findall('paragraphs/paragraph'))
@@ -169,7 +177,6 @@ class Document(_OpenCorporaBase):
     __iter__ = iterparas
 
 
-
 class Corpora(object):
     """
     OpenCorpora.ru corpora reader. Provides fast access to individual
@@ -186,83 +193,110 @@ class Corpora(object):
     def readme(self):
         return self.__doc__
 
-    def fileids(self):
-        return list(self._get_meta().keys())
+    def raw(self, fileids=None, categories=None):
+        return " ".join(self.iterwords(fileids, categories))
 
-    def raw(self, fileids=None):
-        return " ".join(self.iterwords(fileids))
+    def words(self, fileids=None, categories=None):
+        return list(self.iterwords(fileids, categories))
 
-    def words(self, fileids=None):
-        return list(self.iterwords(fileids))
+    def paras(self, fileids=None, categories=None):
+        return list(self.iterparas(fileids, categories))
 
-    def paras(self, fileids=None):
-        return list(self.iterparas(fileids))
+    def sents(self, fileids=None, categories=None):
+        return list(self.itersents(fileids, categories))
 
-    def sents(self, fileids=None):
-        return list(self.itersents(fileids))
+    def tagged_words(self, fileids=None, categories=None):
+        return list(self.iter_tagged_words(fileids, categories))
 
-    def tagged_words(self, fileids=None):
-        return list(self.iter_tagged_words(fileids))
+    def tagged_paras(self, fileids=None, categories=None):
+        return list(self.iter_tagged_paras(fileids, categories))
 
-    def tagged_paras(self, fileids=None):
-        return list(self.iter_tagged_paras(fileids))
+    def tagged_sents(self, fileids=None, categories=None):
+        return list(self.iter_tagged_sents(fileids, categories))
 
-    def tagged_sents(self, fileids=None):
-        return list(self.iter_tagged_sents(fileids))
-
-    def documents(self, fileids=None):
+    def documents(self, fileids=None, categories=None):
         """
         Returns a list of corpus documents.
 
         XXX: it can be very slow and memory-consuming if fileids is None;
         use iterdocuments or pass fileids when possible.
         """
-        return list(self.iterdocuments(fileids))
+        return list(self.iterdocuments(fileids, categories))
 
-    def iter_tagged_words(self, fileids=None):
-        if fileids is None:
-            for token in xml_utils.iterparse(self.filename, 'token', clear=False):
+    def iter_tagged_words(self, fileids=None, categories=None):
+        if fileids is None and categories is None:
+            tokens = xml_utils.iterparse(self.filename, 'token', clear=False)
+            for token in tokens:
                 word = token.get('text')
                 lemma, tags = _first_tags(token)
                 yield word, ",".join(tags)
                 token.clear()
         else:
-            words = itertools.chain(*(doc.iter_tagged_words() for doc in self.iterdocuments(fileids)))
+            docs = self.iterdocuments(fileids, categories)
+            words = itertools.chain(*(doc.iter_tagged_words() for doc in docs))
             for word in words:
                 yield word
 
-    def iter_tagged_paras(self, fileids=None):
-        return (para.tagged_sents() for para in self.iterparas(fileids))
+    def iter_tagged_paras(self, fileids=None, categories=None):
+        paras = self.iterparas(fileids, categories)
+        return (para.tagged_sents() for para in paras)
 
-    def iter_tagged_sents(self, fileids=None):
-        return (sent.tagged_words() for sent in self.itersents(fileids))
+    def iter_tagged_sents(self, fileids=None, categories=None):
+        sents = self.itersents(fileids, categories)
+        return (sent.tagged_words() for sent in sents)
 
-    def iterwords(self, fileids=None):
-        if fileids is None:
-            token_iter = xml_utils.iterparse(self.filename, 'token', clear=True)
-            return (token.get('text') for token in token_iter)
+    def iterwords(self, fileids=None, categories=None):
+        if fileids is None and categories is None:
+            xml_tokens = xml_utils.iterparse(self.filename, 'token', clear=True)
+            return (token.get('text') for token in xml_tokens)
 
-        return itertools.chain(*(doc.iterwords() for doc in self.iterdocuments(fileids)))
+        docs = self.iterdocuments(fileids, categories)
+        return itertools.chain(*(doc.iterwords() for doc in docs))
 
-    def itersents(self, fileids=None):
-        if fileids is None:
-            return compat.imap(Sentence, xml_utils.iterparse(self.filename, 'sentence'))
+    def itersents(self, fileids=None, categories=None):
+        if fileids is None and categories is None:
+            xml_sents = xml_utils.iterparse(self.filename, 'sentence')
+            return compat.imap(Sentence, xml_sents)
 
-        return itertools.chain(*(doc.itersents() for doc in self.iterdocuments(fileids)))
+        docs = self.iterdocuments(fileids, categories)
+        return itertools.chain(*(doc.itersents() for doc in docs))
 
-    def iterparas(self, fileids=None):
-        if fileids is None:
-            return compat.imap(Paragraph, xml_utils.iterparse(self.filename, 'paragraph'))
+    def iterparas(self, fileids=None, categories=None):
+        if fileids is None and categories is None:
+            xml_paras = xml_utils.iterparse(self.filename, 'paragraph')
+            return compat.imap(Paragraph, xml_paras)
 
-        return itertools.chain(*(doc.iterparas() for doc in self.iterdocuments(fileids)))
+        docs = self.iterdocuments(fileids, categories)
+        return itertools.chain(*(doc.iterparas() for doc in docs))
 
-    def iterdocuments(self, fileids=None):
+    def iterdocuments(self, fileids=None, categories=None):
         """
         Returns an iterator over corpus documents.
         """
-        if fileids is None:
+        if fileids is None and categories is None:
             return compat.imap(Document, xml_utils.iterparse(self.filename, 'text'))
-        return (self.get_document(doc_id) for doc_id in _make_iterable(fileids))
+
+        doc_ids = self._filter_ids(fileids, categories)
+        return (self.get_document(doc_id) for doc_id in doc_ids)
+
+    def fileids(self, categories=None):
+        return list(self._filter_ids(None, categories))
+
+    def categories(self, fileids=None, patterns=None):
+        meta = self._get_meta()
+        fileids = _make_iterable(fileids, meta.keys())
+
+        result = sorted(list(set(
+            cat for cat in itertools.chain(*(
+                meta[str(doc_id)].categories for doc_id in fileids
+            ))
+        )))
+
+        if patterns:
+            patterns = _make_iterable(patterns)
+            result = [cat for cat in result if _some_items_match([cat], patterns)]
+
+        return result
 
     def catalog(self):
         """
@@ -279,13 +313,24 @@ class Corpora(object):
         """
         return Document(self._document_xml(doc_id))
 
+    def _filter_ids(self, fileids=None, categories=None):
+        meta = self._get_meta()
+        fileids = _make_iterable(fileids, meta.keys())
+
+        if categories is None:
+            return map(str, fileids)
+
+        category_patterns = _make_iterable(categories)
+        return (doc_id for doc_id in fileids
+                if _some_items_match(meta[doc_id].categories, category_patterns))
+
     def _get_meta(self):
 
         if self._document_meta is None and self.use_cache:
             self._load_meta_cache()
 
         if self._document_meta is None:
-            self._document_meta = self._load_document_meta()
+            self._document_meta = self._compute_document_meta()
             if self.use_cache:
                 self._create_meta_cache()
 
@@ -314,11 +359,12 @@ class Corpora(object):
         except (OSError, IOError, compat.pickle.PickleError, ImportError, AttributeError):
             pass
 
-    def _load_document_meta(self):
+    def _compute_document_meta(self):
         """
         Returns documents meta information that can
         be used for fast document lookups. Meta information
-        consists of documents titles and positions in file.
+        consists of documents titles, categories and positions
+        in file.
         """
         meta = compat.OrderedDict()
         bounds_iter = xml_utils.bounds(self.filename,
@@ -328,7 +374,12 @@ class Corpora(object):
         for match, bounds in bounds_iter:
             doc_id, title = str(match.group(1)), match.group(2)
             title = xml_utils.unescape_attribute(title)
-            meta[doc_id] = _DocumentMeta(title, bounds)
+
+            # cache categories
+            xml = xml_utils.load_chunk(self.filename, bounds)
+            doc = Document(compat.ElementTree.XML(xml.encode('utf8')))
+
+            meta[doc_id] = _DocumentMeta(title, bounds, doc.categories())
         return meta
 
     def _document_xml(self, doc_id):

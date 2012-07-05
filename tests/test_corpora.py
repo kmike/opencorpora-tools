@@ -105,6 +105,10 @@ class CorporaTest(BaseTest):
         paras = self.corpus.paras(['3'])
         self.assertEqual(len(paras), 6)
 
+        paras = self.corpus.paras(categories=['Автор:Яна Сарно'])
+        self.assertEqual(len(paras), 6)
+
+
     def test_sents(self):
         sents = self.corpus.sents()
         self.assertEqual(len(sents), 102)
@@ -115,6 +119,77 @@ class CorporaTest(BaseTest):
     def test_sents_slicing(self):
         sents = self.corpus.sents(['2', '3'])
         self.assertEqual(len(sents), 58)
+
+        sents = self.corpus.sents(categories=['Автор:Яна Сарно'])
+        self.assertEqual(len(sents), 14)
+
+        sents = self.corpus.sents(categories='Автор:Яна Сарно')
+        self.assertEqual(len(sents), 14)
+
+    def test_raw(self):
+        raw = self.corpus.raw(categories='Автор:Яна Сарно')
+        self.assertEqual(len(raw), 2100)
+        self.assertIn('биеннале', raw)
+
+        self.assertEqual(raw, self.corpus.raw(3))
+
+class CategoriesTest(BaseTest):
+    def test_categories(self):
+        cats = self.corpus.categories()
+        self.assertEqual(cats, [
+            'url:http://www.chaskor.ru',
+            'url:http://www.chaskor.ru/article/poslednee_vosstanie_v_seule_22',
+            'url:http://www.chaskor.ru/article/shkola_zlosloviya_uchit_prikusit_yazyk_21',
+            'url:http://www.chaskor.ru/article/za_kota_-_otvetish_23',
+            'Автор:Валентин Колесников',
+            'Автор:Роман Арбитман',
+            'Автор:Яна Сарно',
+            'Год:2008',
+            'Дата:12/08',
+            'Дата:24/09',
+            'Дата:25/08',
+            'Тема:ЧасКор:Культура',
+            'Тема:ЧасКор:Культура/Изобразительное искусство',
+            'Тема:ЧасКор:Культура/Масскульт',
+            'Тема:ЧасКор:Медиа',
+            'Тема:ЧасКор:Медиа/ТВ и радио',
+            'Тип:Газета'
+        ])
+
+    def test_categories_fileids(self):
+        cats = self.corpus.categories(1)
+        self.assertEqual(cats, [
+            'url:http://www.chaskor.ru',
+            'Тип:Газета',
+        ])
+
+        cats = self.corpus.categories([1, 3])
+        self.assertEqual(cats, [
+            'url:http://www.chaskor.ru',
+            'url:http://www.chaskor.ru/article/poslednee_vosstanie_v_seule_22',
+            'Автор:Яна Сарно',
+            'Год:2008',
+            'Дата:12/08',
+            'Тема:ЧасКор:Культура',
+            'Тема:ЧасКор:Культура/Изобразительное искусство',
+            'Тип:Газета',
+        ])
+
+    def test_fileids_categories(self):
+        ids = self.corpus.fileids(['Тип:Газета'])
+        self.assertEqual(ids, ['1'])
+
+        ids = self.corpus.fileids(categories=['Автор:*']) # docs ids with authors
+        self.assertEqual(ids, ['2', '3', '4'])
+
+    def test_categories_patterns(self):
+        cats = self.corpus.categories([1, 3], ['Автор:*', 'Тема:*'])
+        self.assertEqual(cats, [
+            'Автор:Яна Сарно',
+            'Тема:ЧасКор:Культура',
+            'Тема:ЧасКор:Культура/Изобразительное искусство',
+        ])
+
 
 
 class DocumentTest(BaseTest):
