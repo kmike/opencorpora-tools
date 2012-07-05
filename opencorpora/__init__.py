@@ -202,7 +202,7 @@ class Corpora(_OpenCorporaBase):
         """
         try:
             with open(self._cache_filename, 'wb') as f:
-                pickle.dump(self._document_meta, f, pickle.HIGHEST_PROTOCOL)
+                pickle.dump(self._document_meta, f, 1)
         except (IOError, pickle.PickleError):
             pass
 
