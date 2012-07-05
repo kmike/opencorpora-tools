@@ -8,8 +8,16 @@ PY3 = sys.version_info[0] == 3
 
 if PY3:
     imap = map
+    string_types = str,
+    text_type = str
+    binary_type = bytes
+    integer_types = int,
 else:
     imap = itertools.imap
+    string_types = basestring,
+    text_type = unicode
+    binary_type = str
+    integer_types = (int, long)
 
 try:
     from xml.etree import cElementTree as ElementTree

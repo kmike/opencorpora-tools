@@ -116,8 +116,9 @@ a lot of memory (several GB) and should be avoided.
 
 opencorpora-tools handles it this way:
 
-1. ``corpus[doc_id]`` or ``corpus.get_document(doc_id)`` don't load
-   the original XML to memory and don't parse it. They use precomputed offset
+1. ``corpus[doc_id]`` or ``corpus.get_document(doc_id)`` or
+   ``corpus.documents(doc_ids)`` don't load the original
+   XML to memory and don't parse it. They use precomputed offset
    information to slice the XML instead. The offset information is computed
    on first access and saved to "<name>.~" file.
 
