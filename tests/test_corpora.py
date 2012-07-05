@@ -85,7 +85,7 @@ class CorporaTest(BaseTest):
     def test_tagged_words(self):
         words = self.corpus.tagged_words()
         self.assertEqual(len(words), len(self.corpus.words()))
-        self.assertEqual(words[967], ('Школа', 'NOUN inan femn sing nomn'))
+        self.assertEqual(words[967], ('Школа', 'NOUN,inan,femn,sing,nomn'))
 
     def test_tagged_words_slicing(self):
         words = self.corpus.tagged_words('3')
@@ -155,7 +155,7 @@ class TaggedWordsTest(BaseTest):
         words = self.corpus.tagged_words()
         self.assertEqual(words[:2], [
             ('«', 'UNKN'),
-            ('Школа', 'NOUN inan femn sing nomn'),
+            ('Школа', 'NOUN,inan,femn,sing,nomn'),
         ])
         self.assertTaggedAreTheSame(self.corpus)
 
@@ -164,7 +164,7 @@ class TaggedWordsTest(BaseTest):
         words = doc.tagged_words()
         self.assertEqual(words[:2], [
             ('«', 'UNKN'),
-            ('Школа', 'NOUN inan femn sing nomn'),
+            ('Школа', 'NOUN,inan,femn,sing,nomn'),
         ])
         self.assertTaggedAreTheSame(doc)
 
@@ -174,7 +174,7 @@ class TaggedWordsTest(BaseTest):
         self.assertEqual(len(para.words()), len(para.tagged_words()))
         self.assertEqual(words[2:4], [
             ('на', 'PREP'),
-            ('канале', 'NOUN inan masc sing loct'),
+            ('канале', 'NOUN,inan,masc,sing,loct'),
         ])
         self.assertTaggedAreTheSame(para)
 
@@ -183,7 +183,7 @@ class TaggedWordsTest(BaseTest):
         words = sent.tagged_words()
         self.assertEqual(words[2:4], [
             ('на', 'PREP'),
-            ('канале', 'NOUN inan masc sing loct'),
+            ('канале', 'NOUN,inan,masc,sing,loct'),
         ])
         self.assertTaggedAreTheSame(sent)
 

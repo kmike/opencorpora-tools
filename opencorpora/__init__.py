@@ -49,7 +49,7 @@ class _OpenCorporaBase(object):
         for token in self._itertokens():
             word = token.get('text')
             lemma, tags = _first_tags(token)
-            yield word, " ".join(tags)
+            yield word, ",".join(tags)
 
     def iter_tagged_sents(self):
         return (sent.tagged_words() for sent in self.itersents())
@@ -224,7 +224,7 @@ class Corpora(object):
             for token in xml_utils.iterparse(self.filename, 'token', clear=False):
                 word = token.get('text')
                 lemma, tags = _first_tags(token)
-                yield word, " ".join(tags)
+                yield word, ",".join(tags)
                 token.clear()
         else:
             words = itertools.chain(*(doc.iter_tagged_words() for doc in self.iterdocuments(fileids)))
