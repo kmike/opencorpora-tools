@@ -94,7 +94,7 @@ class _OpenCorporaBase(object):
     # XXX: does this work under windows?
     @compat.utf8_for_PY2
     def __repr__(self):
-        return "%s: %s" % (self.__class__, self.as_text())
+        return "%s('%s')" % (self.__class__.__name__, self.as_text())
 
     @compat.utf8_for_PY2
     def __str__(self):
@@ -173,6 +173,10 @@ class Document(_OpenCorporaBase):
 
     def __getitem__(self, key):
         return self.paras()[key]
+
+    @compat.utf8_for_PY2
+    def __repr__(self):
+        return "%s: %s" % (self.__class__.__name__, self.title())
 
     __iter__ = iterparas
 
