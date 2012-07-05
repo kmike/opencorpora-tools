@@ -32,7 +32,10 @@ class CorporaTest(BaseTest):
             ('3', '00022 Последнее восстание в Сеуле'),
             ('4', '00023 За кота - ответишь!'),
         ])
-
+        self.assertEqual(self.corpus.catalog('Тема:ЧасКор:Культура*'), [
+            ('3', '00022 Последнее восстание в Сеуле'),
+            ('4', '00023 За кота - ответишь!'),
+        ])
         self.assertEqual(self.corpus.fileids(), ['1', '2', '3', '4'])
 
     def test_raw_loading(self):

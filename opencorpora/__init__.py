@@ -222,8 +222,9 @@ class Corpora(object):
         """
         Returns a list of corpus documents.
 
-        XXX: it can be very slow and memory-consuming if fileids is None;
-        use iterdocuments or pass fileids when possible.
+        XXX: it can be very slow and memory-consuming if fileids
+        and categories are both None; use iterdocuments or
+        pass fileids/categories when possible.
         """
         return list(self.iterdocuments(fileids, categories))
 
@@ -302,13 +303,14 @@ class Corpora(object):
 
         return result
 
-    def catalog(self):
+    def catalog(self, categories=None):
         """
         Returns information about documents in corpora:
         a list of tuples (doc_id, doc_title).
         """
+        ids = self._filter_ids(None, categories)
         doc_meta = self._get_meta()
-        return [(doc_id, doc_meta[doc_id].title) for doc_id in doc_meta]
+        return [(doc_id, doc_meta[doc_id].title) for doc_id in ids]
 
     def get_document(self, doc_id):
         """
