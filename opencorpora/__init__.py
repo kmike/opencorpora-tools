@@ -198,7 +198,10 @@ class Corpora(object):
         return self.__doc__
 
     def raw(self, fileids=None, categories=None):
-        return " ".join(self.iterwords(fileids, categories))
+        return "\n\n\n".join(
+            d.as_text() for d in
+            self.iterdocuments(fileids, categories)
+        )
 
     def words(self, fileids=None, categories=None):
         return list(self.iterwords(fileids, categories))

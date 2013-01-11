@@ -135,7 +135,7 @@ class CorporaTest(BaseTest):
 
     def test_raw(self):
         raw = self.corpus.raw(categories='Автор:Яна Сарно')
-        self.assertEqual(len(raw), 2100)
+        self.assertEqual(len(raw), 2053)
         self.assertIn('биеннале', raw)
 
         self.assertEqual(raw, self.corpus.raw(3))
