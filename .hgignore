@@ -25,3 +25,5 @@ Thumbs.db$
 ^stuff
 annot.opcorpora.xml$
 \.bz2$
+text_corpora
+\.ipynb
