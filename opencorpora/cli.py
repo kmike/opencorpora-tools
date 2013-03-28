@@ -59,6 +59,8 @@ def download(args):
 parser_download.set_defaults(func=download)
 
 def main():
+    if len(sys.argv) == 1:
+        sys.argv.append('--help')
     args = parser.parse_args()
     return args.func(args)
 
