@@ -47,7 +47,7 @@ def download(args):
 
     print('Creating %s from %s' % (out_file, args.url))
 
-    with open(out_file, 'w') as out:
+    with open(out_file, 'wb') as out:
         def on_chunk():
             sys.stdout.write('.')
             sys.stdout.flush()
