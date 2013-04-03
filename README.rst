@@ -37,7 +37,7 @@ Using corpora
 Initialize::
 
     >>> import opencorpora
-    >>> corpus = opencorpora.Corpora('annot.opcorpora.xml')
+    >>> corpus = opencorpora.CorpusReader('annot.opcorpora.xml')
 
 Get table of contents::
 
@@ -62,12 +62,8 @@ Work with documents::
 
 ``opencorpora.Corpora`` is modelled after NLTK's CorpusReader interface;
 consult with http://nltk.googlecode.com/svn/trunk/doc/book/ch02.html to
-get an idea how to work with the API.
-
-It it not exactly the same, but is very similar. E.g. ``sents()`` in
-opencorpora-tools returns a list of ``Sentence`` instances and ``sents()``
-in NLTK returns a list of list of strings, but ``Sentence`` instances quacks
-like a list of strings (it can be indexed, iterated, etc.).
+get an idea how to work with the API. It it not exactly the same,
+but should be very similar.
 
 
 Performance
@@ -78,16 +74,16 @@ a lot of memory (several GB) and should be avoided.
 
 opencorpora-tools handles it this way:
 
-1. ``corpus[doc_id]`` or ``corpus.get_document(doc_id)`` or
-   ``corpus.documents(doc_ids)`` don't load the original
-   XML to memory and don't parse it. They use precomputed offset
-   information to slice the XML instead. The offset information is computed
-   on first access and saved to "<name>.~" file.
+1. ``corpus.get_document(doc_id)`` or ``corpus.documents(doc_ids)``
+   don't load the original XML to memory and don't parse the whole XML.
+   They use precomputed offset information to slice the XML instead.
+   The offset information is computed on first access and
+   saved to "<name>.~" file.
 
-   Consider document loading O(1) regarding XML size. Individual documents
-   are not huge so they and loaded and parsed as usual.
+   Consider document loading O(1) regarding full XML size.
+   Individual documents are not huge so they and loaded and parsed as usual.
 
-2. There are iterator methods for all corpora API (``corpus.iterwords``, etc).
+2. There are iterator methods for all corpora API (``corpus.iter_words``, etc).
 
 
 Development
@@ -111,5 +107,5 @@ Make sure `tox <http://tox.testrun.org>`_ is installed and run
 
     $ tox
 
-from the source checkout. Tests should pass under python 2.6..3.2
-and pypy > 1.8.
+from the source checkout. Tests should pass under python 2.6..3.3
+and pypy > 1.9.

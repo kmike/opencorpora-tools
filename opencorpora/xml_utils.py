@@ -23,9 +23,10 @@ def iterparse(source, tag, clear=False):
 def unescape_attribute(text):
     return xml.sax.saxutils.unescape(text, {'&quot;': '"'})
 
+
 def bounds(filename, start_re, end_re, encoding='utf8'):
     """
-    Computes chunk bounds from text file according to start_re and end_re:
+    Compute chunk bounds from text file according to start_re and end_re:
     yields (start_match, Bounds) tuples.
     """
     start_re, end_re = re.compile(start_re), re.compile(end_re)
@@ -49,7 +50,7 @@ def bounds(filename, start_re, end_re, encoding='utf8'):
 
 def load_chunk(filename, bounds, encoding='utf8', slow=False):
     """
-    Loads a chunk from file using Bounds info.
+    Load a chunk from file using Bounds info.
     Pass 'slow=True' for an alternative loading method based on line numbers.
     """
     if slow:
@@ -70,6 +71,7 @@ def _load_chunk_slow(filename, bounds, encoding='utf8'):
             if index >= bounds.line_end:
                 break
     return ''.join(lines)
+
 
 def ET_to_lxml(element):
     import lxml.etree

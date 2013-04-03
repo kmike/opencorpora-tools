@@ -10,7 +10,7 @@ import tempfile
 import shutil
 from opencorpora.compat import OrderedDict
 
-import opencorpora
+from opencorpora.reader import CorpusReader
 
 TEST_DATA = os.path.join(os.path.dirname(__file__), 'annot.opcorpora.test.xml')
 
@@ -18,10 +18,11 @@ class BaseTest(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
         cache_filename = os.path.join(self.temp_dir, 'corpora.cache')
-        self.corpus = opencorpora.Corpora(TEST_DATA, cache_filename=cache_filename)
+        self.corpus = CorpusReader(TEST_DATA, cache_filename=cache_filename)
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
+
 
 class CorporaTest(BaseTest):
 
@@ -61,7 +62,7 @@ class CorporaTest(BaseTest):
         self.assertEqual(docs[1].raw(), self.corpus.get_document(2).raw())
 
     def test_titles(self):
-        titles = [doc.title() for doc in self.corpus.iterdocuments()]
+        titles = [doc.title() for doc in self.corpus.iter_documents()]
         catalog_titles = list(OrderedDict(self.corpus.catalog()).values())
         self.assertEqual(titles, catalog_titles)
 
@@ -92,12 +93,12 @@ class CorporaTest(BaseTest):
     def test_tagged_words(self):
         words = self.corpus.tagged_words()
         self.assertEqual(len(words), len(self.corpus.words()))
-        self.assertEqual(words[967], ('Школа', 'NOUN,inan,femn,sing,nomn'))
+        self.assertEqual(words[967], ('Школа', [('школа', 'NOUN,inan,femn,sing,nomn')]))
 
     def test_tagged_words_slicing(self):
         words = self.corpus.tagged_words('3')
         self.assertEqual(len(words), len(self.corpus.words('3')))
-        self.assertEqual(words[17], ('арт-группы', 'UNKN'))
+        self.assertEqual(words[17], ('арт-группы', [('арт-группы', 'UNKN')]))
 
 
     def test_paras(self):
@@ -105,8 +106,7 @@ class CorporaTest(BaseTest):
         self.assertEqual(len(paras), 41)
 
         for para in paras:
-            self.assertTrue(para.words())
-            self.assertTrue(para.sents())
+            self.assertTrue(len(para))
 
     def test_paras_slicing(self):
         paras = self.corpus.paras(['3'])
@@ -121,7 +121,7 @@ class CorporaTest(BaseTest):
         self.assertEqual(len(sents), 102)
 
         for sent in sents:
-            self.assertTrue(sent.words())
+            self.assertTrue(len(sent))
 
     def test_sents_slicing(self):
         sents = self.corpus.sents(['2', '3'])
@@ -209,17 +209,10 @@ class DocumentTest(BaseTest):
         self.assertEqual(len(words), 1027)
         self.assertEqual(words[9], 'градус')
 
-    def test_sents(self):
-        sents = self.corpus.get_document(2).sents()
+    def test_raw_sents(self):
+        sents = self.corpus.get_document(2).raw_sents()
         self.assertEqual(len(sents), 44)
-        self.assertEqual(sents[1].as_text(), 'Сохранится ли градус дискуссии в новом сезоне?')
-
-    def test_magic(self):
-        doc = self.corpus.get_document(3)
-        self.assertEqual(len(doc), 6) # 6 paragraphs
-        para = doc[2]
-        self.assertEqual(len(para), 2) # 2 sentences
-        self.assertEqual(para[1][0], 'Примечательно')
+        self.assertEqual(sents[1], 'Сохранится ли градус дискуссии в новом сезоне?')
 
 
 class TaggedWordsTest(BaseTest):
@@ -232,12 +225,11 @@ class TaggedWordsTest(BaseTest):
 
         self.assertEqual(len(words), len(tagged_words))
 
-
     def test_corpus(self):
         words = self.corpus.tagged_words()
         self.assertEqual(words[:2], [
-            ('«', 'UNKN'),
-            ('Школа', 'NOUN,inan,femn,sing,nomn'),
+            ('«', [('«', 'UNKN')]),
+            ('Школа', [('школа', 'NOUN,inan,femn,sing,nomn')]),
         ])
         self.assertTaggedAreTheSame(self.corpus)
 
@@ -245,27 +237,7 @@ class TaggedWordsTest(BaseTest):
         doc = self.corpus.get_document(2)
         words = doc.tagged_words()
         self.assertEqual(words[:2], [
-            ('«', 'UNKN'),
-            ('Школа', 'NOUN,inan,femn,sing,nomn'),
+            ('«', [('«', 'UNKN')]),
+            ('Школа', [('школа', 'NOUN,inan,femn,sing,nomn')]),
         ])
         self.assertTaggedAreTheSame(doc)
-
-    def test_paragraph(self):
-        para = self.corpus.get_document(2)[3]
-        words = para.tagged_words()
-        self.assertEqual(len(para.words()), len(para.tagged_words()))
-        self.assertEqual(words[2:4], [
-            ('на', 'PREP'),
-            ('канале', 'NOUN,inan,masc,sing,loct'),
-        ])
-        self.assertTaggedAreTheSame(para)
-
-    def test_sentence(self):
-        sent = self.corpus.get_document(2)[3][0]
-        words = sent.tagged_words()
-        self.assertEqual(words[2:4], [
-            ('на', 'PREP'),
-            ('канале', 'NOUN,inan,masc,sing,loct'),
-        ])
-        self.assertTaggedAreTheSame(sent)
-
