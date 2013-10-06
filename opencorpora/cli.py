@@ -6,7 +6,8 @@ import bz2
 import argparse
 from opencorpora.compat import urlopen
 
-CORPORA_URL_BZ2 = 'http://opencorpora.org/files/export/annot/annot.opcorpora.xml.bz2'
+FULL_CORPORA_URL_BZ2 = 'http://opencorpora.org/files/export/annot/annot.opcorpora.xml.bz2'
+DISAMBIGUATED_CORPORA_URL_BZ2 = 'http://opencorpora.org/files/export/annot/annot.opcorpora.no_ambig.xml.bz2'
 DEFAULT_OUT_FILE = 'annot.opcorpora.xml.bz2'
 CHUNK_SIZE = 256*1024
 
@@ -21,7 +22,8 @@ parser_download = subparsers.add_parser('download',
     formatter_class=argparse.ArgumentDefaultsHelpFormatter
 )
 parser_download.add_argument('-o', '--output', type=str, help='destination file', default=DEFAULT_OUT_FILE)
-parser_download.add_argument('--url', help='download url', default=CORPORA_URL_BZ2)
+parser_download.add_argument('-d', '--disambig', help='download disambiguated corpora', action='store_true')
+parser_download.add_argument('--url', help='download url', default=FULL_CORPORA_URL_BZ2)
 parser_download.add_argument('--no-decompress',  help='do not decompress data', action='store_true')
 
 def _download(url, out_fp, decompress=True, chunk_size=CHUNK_SIZE, on_chunk=lambda:None):
@@ -45,14 +47,19 @@ def download(args):
     if decompress and out_file == DEFAULT_OUT_FILE:
         out_file = DEFAULT_OUT_FILE[:-4]
 
-    print('Creating %s from %s' % (out_file, args.url))
+    if args.disambig:
+        url = DISAMBIGUATED_CORPORA_URL_BZ2
+    else:
+        url = args.url
+
+    print('Creating %s from %s' % (out_file, url))
 
     with open(out_file, 'wb') as out:
         def on_chunk():
             sys.stdout.write('.')
             sys.stdout.flush()
 
-        _download(args.url, out, decompress, on_chunk=on_chunk)
+        _download(url, out, decompress, on_chunk=on_chunk)
 
     print('\nDone.')
 
