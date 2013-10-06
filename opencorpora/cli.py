@@ -26,7 +26,8 @@ parser_download.add_argument('-d', '--disambig', help='download disambiguated co
 parser_download.add_argument('--url', help='download url', default=FULL_CORPORA_URL_BZ2)
 parser_download.add_argument('--no-decompress',  help='do not decompress data', action='store_true')
 
-def _download(url, out_fp, decompress=True, chunk_size=CHUNK_SIZE, on_chunk=lambda:None):
+
+def _download_file(url, out_fp, decompress=True, chunk_size=CHUNK_SIZE, on_chunk=lambda:None):
     decompressor = bz2.BZ2Decompressor()
     fp = urlopen(url, timeout=30)
 
@@ -41,16 +42,13 @@ def _download(url, out_fp, decompress=True, chunk_size=CHUNK_SIZE, on_chunk=lamb
             out_fp.write(data)
         on_chunk()
 
-def download(args):
-    out_file = args.output
-    decompress = not args.no_decompress
+
+def _download(out_file, decompress, disambig, url):
     if decompress and out_file == DEFAULT_OUT_FILE:
         out_file = DEFAULT_OUT_FILE[:-4]
 
-    if args.disambig:
+    if disambig:
         url = DISAMBIGUATED_CORPORA_URL_BZ2
-    else:
-        url = args.url
 
     print('Creating %s from %s' % (out_file, url))
 
@@ -59,17 +57,22 @@ def download(args):
             sys.stdout.write('.')
             sys.stdout.flush()
 
-        _download(url, out, decompress, on_chunk=on_chunk)
+        _download_file(url, out, decompress, on_chunk=on_chunk)
 
     print('\nDone.')
 
+
+def download(args):
+    _download(args.output, not args.no_decompress, args.disambig, args.url)
 parser_download.set_defaults(func=download)
+
 
 def main():
     if len(sys.argv) == 1:
         sys.argv.append('--help')
     args = parser.parse_args()
     return args.func(args)
+
 
 if __name__ == '__main__':
     sys.exit(main())
