@@ -35,6 +35,15 @@ def _sentence_tagged_words(sent_elem):
     res = []
     for tok in sent_elem.findall('*//token'):
         text = tok.get('text')
+        parse = tok.find('*//l')
+        tag = ','.join(_grammemes(parse))
+        res.append((text, tag))
+    return res
+
+def _sentence_parsed_words(sent_elem):
+    res = []
+    for tok in sent_elem.findall('*//token'):
+        text = tok.get('text')
         parses = tok.findall('*//l')
         annotations = [(p.get('t'), ','.join(_grammemes(p))) for p in parses]
         res.append((text, annotations))
@@ -73,6 +82,9 @@ class Document(object):
     def iter_tagged_sents(self):
         return imap(_sentence_tagged_words, self._xml_sents())
 
+    def iter_parsed_sents(self):
+        return imap(_sentence_parsed_words, self._xml_sents())
+
     def iter_paras(self):
         for para_elem in self._xml_paras():
             yield [_sentence_words(s) for s in para_elem.findall('sentence')]
@@ -85,20 +97,30 @@ class Document(object):
         for para_elem in self._xml_paras():
             yield [_sentence_tagged_words(s) for s in para_elem.findall('sentence')]
 
+    def iter_parsed_paras(self):
+        for para_elem in self._xml_paras():
+            yield [_sentence_parsed_words(s) for s in para_elem.findall('sentence')]
+
     def iter_words(self):
         return itertools.chain(*self.iter_sents())
 
     def iter_tagged_words(self):
         return itertools.chain(*self.iter_tagged_sents())
 
+    def iter_parsed_words(self):
+        return itertools.chain(*self.iter_parsed_sents())
+
     sents = non_iterative(iter_sents)
     raw_sents = non_iterative(iter_raw_sents)
     tagged_sents = non_iterative(iter_tagged_sents)
+    parsed_sents = non_iterative(iter_parsed_sents)
     paras = non_iterative(iter_paras)
     raw_paras = non_iterative(iter_raw_paras)
     tagged_paras = non_iterative(iter_tagged_paras)
+    parsed_paras = non_iterative(iter_parsed_paras)
     words = non_iterative(iter_words)
     tagged_words = non_iterative(iter_tagged_words)
+    parsed_words = non_iterative(iter_parsed_words)
 
     # misc
     def title(self):
@@ -157,20 +179,26 @@ class CorpusReader(object):
     iter_paras = _from_documents('iter_paras')
     iter_raw_paras = _from_documents('iter_raw_paras')
     iter_tagged_paras = _from_documents('iter_tagged_paras')
+    iter_parsed_paras = _from_documents('iter_parsed_paras')
     iter_sents = _from_documents('iter_sents')
     iter_raw_sents = _from_documents('iter_raw_sents')
     iter_tagged_sents = _from_documents('iter_tagged_sents')
+    iter_parsed_sents = _from_documents('iter_parsed_sents')
     iter_words = _from_documents('iter_words')
     iter_tagged_words = _from_documents('iter_tagged_words')
+    iter_parsed_words = _from_documents('iter_parsed_words')
 
     sents = non_iterative(iter_sents)
     raw_sents = non_iterative(iter_raw_sents)
     tagged_sents = non_iterative(iter_tagged_sents)
+    parsed_sents = non_iterative(iter_parsed_sents)
     paras = non_iterative(iter_paras)
     raw_paras = non_iterative(iter_raw_paras)
     tagged_paras = non_iterative(iter_tagged_paras)
+    parsed_paras = non_iterative(iter_parsed_paras)
     words = non_iterative(iter_words)
     tagged_words = non_iterative(iter_tagged_words)
+    parsed_words = non_iterative(iter_parsed_words)
     documents = non_iterative(iter_documents)
     documents_raw = non_iterative(iter_documents_raw)
 

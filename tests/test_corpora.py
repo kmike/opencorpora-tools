@@ -41,7 +41,7 @@ class CorporaTest(BaseTest):
 
     def test_raw_loading(self):
         loaded_raw = self.corpus._get_doc_by_raw_offset(3)
-        loaded_line = self.corpus._get_doc_by_line_offset(3) # this is reliable
+        loaded_line = self.corpus._get_doc_by_line_offset(3)  # this is reliable
         self.assertEqual(loaded_raw, loaded_line)
 
     def test_single_doc_xml(self):
@@ -93,10 +93,20 @@ class CorporaTest(BaseTest):
     def test_tagged_words(self):
         words = self.corpus.tagged_words()
         self.assertEqual(len(words), len(self.corpus.words()))
+        self.assertEqual(words[967], ('Школа', 'NOUN,inan,femn,sing,nomn'))
+
+    def test_parsed_words(self):
+        words = self.corpus.parsed_words()
+        self.assertEqual(len(words), len(self.corpus.words()))
         self.assertEqual(words[967], ('Школа', [('школа', 'NOUN,inan,femn,sing,nomn')]))
 
     def test_tagged_words_slicing(self):
         words = self.corpus.tagged_words('3')
+        self.assertEqual(len(words), len(self.corpus.words('3')))
+        self.assertEqual(words[17], ('арт-группы', 'UNKN'))
+
+    def test_parsed_words_slicing(self):
+        words = self.corpus.parsed_words('3')
         self.assertEqual(len(words), len(self.corpus.words('3')))
         self.assertEqual(words[17], ('арт-группы', [('арт-группы', 'UNKN')]))
 
@@ -136,8 +146,7 @@ class CorporaTest(BaseTest):
     def test_raw(self):
         raw = self.corpus.raw(categories='Автор:Яна Сарно')
         self.assertEqual(len(raw), 2053)
-        self.assertIn('биеннале', raw)
-
+        self.assertTrue('биеннале' in raw)
         self.assertEqual(raw, self.corpus.raw(3))
 
 class CategoriesTest(BaseTest):
@@ -228,8 +237,8 @@ class TaggedWordsTest(BaseTest):
     def test_corpus(self):
         words = self.corpus.tagged_words()
         self.assertEqual(words[:2], [
-            ('«', [('«', 'UNKN')]),
-            ('Школа', [('школа', 'NOUN,inan,femn,sing,nomn')]),
+            ('«', 'UNKN'),
+            ('Школа', 'NOUN,inan,femn,sing,nomn'),
         ])
         self.assertTaggedAreTheSame(self.corpus)
 
@@ -237,7 +246,35 @@ class TaggedWordsTest(BaseTest):
         doc = self.corpus.get_document(2)
         words = doc.tagged_words()
         self.assertEqual(words[:2], [
+            ('«', 'UNKN'),
+            ('Школа', 'NOUN,inan,femn,sing,nomn'),
+        ])
+        self.assertTaggedAreTheSame(doc)
+
+
+class ParsedWordsTest(BaseTest):
+
+    def assertParsedAreTheSame(self, obj):
+        words, parsed_words = obj.words(), obj.parsed_words()
+
+        for word, parsed_word in zip(words, parsed_words):
+            self.assertEqual(word, parsed_word[0])
+
+        self.assertEqual(len(words), len(parsed_words))
+
+    def test_corpus(self):
+        words = self.corpus.parsed_words()
+        self.assertEqual(words[:2], [
             ('«', [('«', 'UNKN')]),
             ('Школа', [('школа', 'NOUN,inan,femn,sing,nomn')]),
         ])
-        self.assertTaggedAreTheSame(doc)
+        self.assertParsedAreTheSame(self.corpus)
+
+    def test_document(self):
+        doc = self.corpus.get_document(2)
+        words = doc.parsed_words()
+        self.assertEqual(words[:2], [
+            ('«', [('«', 'UNKN')]),
+            ('Школа', [('школа', 'NOUN,inan,femn,sing,nomn')]),
+        ])
+        self.assertParsedAreTheSame(doc)
