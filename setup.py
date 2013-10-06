@@ -6,7 +6,7 @@ for cmd in ('egg_info', 'develop'):
     if cmd in sys.argv:
         from setuptools import setup
 
-__version__ = '0.3'
+__version__ = '0.4'
 
 PY3 = sys.version_info[0] == 3
 if not PY3:
