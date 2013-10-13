@@ -25,6 +25,7 @@ parser_download.add_argument('-o', '--output', type=str, help='destination file'
 parser_download.add_argument('-d', '--disambig', help='download disambiguated corpora', action='store_true')
 parser_download.add_argument('--url', help='download url', default=FULL_CORPORA_URL_BZ2)
 parser_download.add_argument('--no-decompress',  help='do not decompress data', action='store_true')
+parser_download.add_argument('-q', '--quiet', help='be less noisy', action='store_true')
 
 
 def _download_file(url, out_fp, decompress=True, chunk_size=CHUNK_SIZE, on_chunk=lambda:None):
@@ -43,27 +44,31 @@ def _download_file(url, out_fp, decompress=True, chunk_size=CHUNK_SIZE, on_chunk
         on_chunk()
 
 
-def _download(out_file, decompress, disambig, url):
+def _download(out_file, decompress, disambig, url, verbose=True):
     if decompress and out_file == DEFAULT_OUT_FILE:
         out_file = DEFAULT_OUT_FILE[:-4]
 
     if disambig:
         url = DISAMBIGUATED_CORPORA_URL_BZ2
 
-    print('Creating %s from %s' % (out_file, url))
+    if verbose:
+        print('Creating %s from %s' % (out_file, url))
 
     with open(out_file, 'wb') as out:
-        def on_chunk():
-            sys.stdout.write('.')
-            sys.stdout.flush()
-
+        if verbose:
+            def on_chunk():
+                sys.stdout.write('.')
+                sys.stdout.flush()
+        else:
+            on_chunk = lambda: None
         _download_file(url, out, decompress, on_chunk=on_chunk)
 
-    print('\nDone.')
+    if verbose:
+        print('\nDone.')
 
 
 def download(args):
-    _download(args.output, not args.no_decompress, args.disambig, args.url)
+    _download(args.output, not args.no_decompress, args.disambig, args.url, not args.quiet)
 parser_download.set_defaults(func=download)
 
 
