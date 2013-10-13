@@ -16,5 +16,6 @@ class CliTest(unittest.TestCase):
                 no_decompress = False
                 url = ''
                 disambig = False
+                quiet = False
             args = Args()
             cli.download(args)
