@@ -8,12 +8,13 @@ from .compat import ElementTree
 
 Bounds = namedtuple('Bounds', 'line_start line_end byte_start byte_end')
 
-def iterparse(source, tag, clear=False):
+
+def iterparse(source, tag, clear=False, events=None):
     """
     iterparse variant that supports 'tag' parameter (like lxml),
-    handles only 'end' event, yields elements and clears nodes after parsing.
+    yields elements and clears nodes after parsing.
     """
-    for event, elem in ElementTree.iterparse(source):
+    for event, elem in ElementTree.iterparse(source, events=events):
         if elem.tag == tag:
             yield elem
         if clear:

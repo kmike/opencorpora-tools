@@ -26,7 +26,7 @@ class BaseTest(unittest.TestCase):
 
 class CorporaTest(BaseTest):
 
-    def test_meta(self):
+    def test_document_meta(self):
         self.assertEqual(self.corpus.catalog(), [
             ('1', '"Частный корреспондент"'),
             ('2', '00021 Школа злословия'),
@@ -38,6 +38,12 @@ class CorporaTest(BaseTest):
             ('4', '00023 За кота - ответишь!'),
         ])
         self.assertEqual(self.corpus.fileids(), ['1', '2', '3', '4'])
+
+    def test_annotation_info(self):
+        self.assertEqual(
+            self.corpus.get_annotation_info(),
+            {"version": "0.11", "revision": "833456"}
+        )
 
     def test_raw_loading(self):
         loaded_raw = self.corpus._get_doc_by_raw_offset(3)
@@ -148,6 +154,7 @@ class CorporaTest(BaseTest):
         self.assertEqual(len(raw), 2053)
         self.assertTrue('биеннале' in raw)
         self.assertEqual(raw, self.corpus.raw(3))
+
 
 class CategoriesTest(BaseTest):
     def test_categories(self):

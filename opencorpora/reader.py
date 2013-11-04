@@ -162,7 +162,7 @@ class CorpusReader(object):
         self.filename = filename
         self.use_cache = use_cache
         self._document_meta = None
-        self._cache_filename = cache_filename or filename+'.~'
+        self._cache_filename = cache_filename or filename + '.~'
 
     def iter_documents(self, fileids=None, categories=None, _destroy=False):
         """ Return an iterator over corpus documents. """
@@ -251,6 +251,14 @@ class CorpusReader(object):
     def readme(self):
         return self.__doc__
 
+    def get_annotation_info(self):
+        for el in xml_utils.iterparse(self.filename, 'annotation', clear=True,
+                                      events=('start',)):
+            return {
+                'version': el.get('version'),
+                'revision': el.get('revision'),
+            }
+
     def _filter_ids(self, fileids=None, categories=None):
         meta = self._get_meta()
         fileids = make_iterable(fileids, meta.keys())
@@ -298,7 +306,7 @@ class CorpusReader(object):
     def _should_invalidate_cache(self):
         data_mtime = os.path.getmtime(self.filename)
         cache_mtime = os.path.getmtime(self._cache_filename)
-        return  data_mtime > cache_mtime
+        return data_mtime > cache_mtime
 
     def _compute_document_meta(self):
         """
