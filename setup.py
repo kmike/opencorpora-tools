@@ -6,10 +6,10 @@ for cmd in ('egg_info', 'develop'):
     if cmd in sys.argv:
         from setuptools import setup
 
-__version__ = '0.4.2'
+__version__ = '0.4.3'
 
-PY3 = sys.version_info[0] == 3
-if not PY3:
+PY2 = sys.version_info[0] == 2
+if PY2:
     reload(sys)
     sys.setdefaultencoding("utf-8")
 
