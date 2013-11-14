@@ -6,7 +6,7 @@ import itertools
 import fnmatch
 from collections import namedtuple
 from opencorpora import compat, xml_utils
-from opencorpora.compat import imap
+from opencorpora.compat import imap, text_type
 
 
 def make_iterable(obj, default=None):
@@ -26,31 +26,35 @@ def some_items_match(items, patterns):
 
 
 def _sentence_source(sent_elem):
-    return sent_elem.find('source').text
+    return text_type(sent_elem.find('source').text)
 
 def _sentence_words(sent_elem):
-    return [tok.get('text') for tok in sent_elem.findall('*//token')]
+    return [text_type(tok.get('text')) for tok in sent_elem.findall('*//token')]
 
 def _sentence_tagged_words(sent_elem):
     res = []
     for tok in sent_elem.findall('*//token'):
-        text = tok.get('text')
+        text = text_type(tok.get('text'))
         parse = tok.find('*//l')
-        tag = ','.join(_grammemes(parse))
+        tag = text_type(',').join(_grammemes(parse))
         res.append((text, tag))
     return res
 
 def _sentence_parsed_words(sent_elem):
     res = []
     for tok in sent_elem.findall('*//token'):
-        text = tok.get('text')
+        text = text_type(tok.get('text'))
         parses = tok.findall('*//l')
-        annotations = [(p.get('t'), ','.join(_grammemes(p))) for p in parses]
+        annotations = [
+            (text_type(p.get('t')), text_type(',').join(_grammemes(p)))
+            for p in parses
+        ]
         res.append((text, annotations))
     return res
 
 def _grammemes(l_element):
-    return [grammeme.get('v') for grammeme in l_element.getchildren()]
+    return [text_type(grammeme.get('v'))
+            for grammeme in l_element.getchildren()]
 
 
 def non_iterative(func):
@@ -124,10 +128,10 @@ class Document(object):
 
     # misc
     def title(self):
-        return self.root.get('name')
+        return text_type(self.root.get('name'))
 
     def categories(self):
-        return [tag.text for tag in self.root.findall('tags//tag')]
+        return [text_type(tag.text) for tag in self.root.findall('tags//tag')]
 
     def raw(self):
         return "\n\n".join(self.iter_raw_paras())
