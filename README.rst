@@ -89,14 +89,9 @@ opencorpora-tools handles it this way:
 Development
 ===========
 
-Development happens at github and bitbucket:
-
-* https://github.com/kmike/opencorpora-tools
-* https://bitbucket.org/kmike/opencorpora-tools
-
-The main issue tracker is at github.
-
-Feel free to submit ideas, bugs, pull requests (git or hg) or regular patches.
+Development happens at github: https://github.com/kmike/opencorpora-tools
+Issue tracker: https://github.com/kmike/opencorpora-tools/issues.
+Feel free to submit ideas, bugs or pull requests.
 
 Running tests
 -------------
@@ -107,5 +102,5 @@ Make sure `tox <http://tox.testrun.org>`_ is installed and run
 
     $ tox
 
-from the source checkout. Tests should pass under python 2.6..3.3
+from the source checkout. Tests should pass under python 2.6..3.4
 and pypy > 1.9.

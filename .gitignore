@@ -1,0 +1,29 @@
+.settings
+.project
+.pydevproject
+.cache
+.idea
+
+#temp files
+*.pyc
+*.orig
+*.~
+
+#os files
+.DS_Store
+Thumbs.db
+
+#setup
+build/
+dist/
+MANIFEST
+.egg-info
+.coverage
+
+#project-specific files
+.tox/
+stuff/
+annot.opcorpora.xml
+*.bz2
+text_corpora/
+*.ipynb
