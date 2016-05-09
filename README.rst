@@ -11,11 +11,6 @@ Installation
 
     pip install opencorpora-tools
 
-If you have python 2.6 then argparse and ordereddict packages are required::
-
-    pip install argparse
-    pip install ordereddict
-
 Usage
 =====
 
@@ -102,5 +97,4 @@ Make sure `tox <http://tox.testrun.org>`_ is installed and run
 
     $ tox
 
-from the source checkout. Tests should pass under python 2.6..3.4
-and pypy > 1.9.
+from the source checkout. Tests should pass under Python 2.7 and 3.3+.

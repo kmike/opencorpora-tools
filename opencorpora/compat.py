@@ -25,11 +25,6 @@ except ImportError:
     from xml.etree import ElementTree
 
 try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
-
-try:
     from urllib.request import urlopen
 except ImportError:
     from urllib2 import urlopen

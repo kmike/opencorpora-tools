@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 import sys
-from distutils.core import setup
-
-for cmd in ('egg_info', 'develop'):
-    if cmd in sys.argv:
-        from setuptools import setup
+from setuptools import setup
 
 __version__ = '0.4.4'
 
@@ -13,20 +9,21 @@ if PY2:
     reload(sys)
     sys.setdefaultencoding("utf-8")
 
+
 setup(
-    name = 'opencorpora-tools',
-    version = __version__,
-    author = 'Mikhail Korobov',
-    author_email = 'kmike84@gmail.com',
-    url = 'https://github.com/kmike/opencorpora-tools/',
+    name='opencorpora-tools',
+    version=__version__,
+    author='Mikhail Korobov',
+    author_email='kmike84@gmail.com',
+    url='https://github.com/kmike/opencorpora-tools/',
 
-    description = 'opencorpora.org python interface',
-    long_description = open('README.rst').read(),
+    description='opencorpora.org python interface',
+    long_description=open('README.rst').read(),
 
-    license = 'MIT license',
-    packages = ['opencorpora'],
+    license='MIT license',
+    packages=['opencorpora'],
     scripts=['bin/opencorpora'],
-    requires = ['argparse', 'ordereddict'],
+    install_requires=['lxml'],
 
     classifiers=[
         'Development Status :: 3 - Alpha',
@@ -36,12 +33,11 @@ setup(
         'Natural Language :: Russian',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Software Development :: Libraries :: Python Modules',

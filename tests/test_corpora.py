@@ -5,14 +5,15 @@ try:
     import unittest2 as unittest
 except ImportError:
     import unittest
-
 import tempfile
 import shutil
-from opencorpora.compat import OrderedDict
+from collections import OrderedDict
 
 from opencorpora.reader import CorpusReader
 
+
 TEST_DATA = os.path.join(os.path.dirname(__file__), 'annot.opcorpora.test.xml')
+
 
 class BaseTest(unittest.TestCase):
     def setUp(self):

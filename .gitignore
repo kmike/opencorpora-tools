@@ -17,7 +17,7 @@ Thumbs.db
 build/
 dist/
 MANIFEST
-.egg-info
+*.egg-info
 .coverage
 
 #project-specific files
@@ -27,3 +27,4 @@ annot.opcorpora.xml
 *.bz2
 text_corpora/
 *.ipynb
+data/

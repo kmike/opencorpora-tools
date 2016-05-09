@@ -4,7 +4,7 @@ import os
 import functools
 import itertools
 import fnmatch
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 from opencorpora import compat, xml_utils
 from opencorpora.compat import imap, text_type
 
@@ -17,6 +17,7 @@ def make_iterable(obj, default=None):
         return [obj]
     return obj
 
+
 def some_items_match(items, patterns):
     return any(
         fnmatch.fnmatchcase(item, pattern)
@@ -28,8 +29,10 @@ def some_items_match(items, patterns):
 def _sentence_source(sent_elem):
     return text_type(sent_elem.find('source').text)
 
+
 def _sentence_words(sent_elem):
     return [text_type(tok.get('text')) for tok in sent_elem.findall('*//token')]
+
 
 def _sentence_tagged_words(sent_elem):
     res = []
@@ -39,6 +42,7 @@ def _sentence_tagged_words(sent_elem):
         tag = text_type(',').join(_grammemes(parse))
         res.append((text, tag))
     return res
+
 
 def _sentence_parsed_words(sent_elem):
     res = []
@@ -51,6 +55,7 @@ def _sentence_parsed_words(sent_elem):
         ]
         res.append((text, annotations))
     return res
+
 
 def _grammemes(l_element):
     return [text_type(grammeme.get('v'))
@@ -319,7 +324,7 @@ class CorpusReader(object):
         consists of documents titles, categories and positions
         in file.
         """
-        meta = compat.OrderedDict()
+        meta = OrderedDict()
 
         bounds_iter = xml_utils.bounds(self.filename,
                             start_re=r'<text id="(\d+)"[^>]*name="([^"]*)"',
