@@ -2,7 +2,7 @@
 import sys
 from setuptools import setup
 
-__version__ = '0.4.4'
+__version__ = '0.5'
 
 PY2 = sys.version_info[0] == 2
 if PY2:
