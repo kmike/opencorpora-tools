@@ -12,7 +12,7 @@ from collections import OrderedDict
 from opencorpora.reader import CorpusReader
 
 
-TEST_DATA = os.path.join(os.path.dirname(__file__), 'annot.opcorpora.test.xml')
+TEST_DATA = os.path.join(os.path.dirname(__file__), 'annot.corpus.xml')
 
 
 class BaseTest(unittest.TestCase):
@@ -43,7 +43,7 @@ class CorporaTest(BaseTest):
     def test_annotation_info(self):
         self.assertEqual(
             self.corpus.get_annotation_info(),
-            {"version": "0.11", "revision": "833456"}
+            {"version": "0.12", "revision": "4579844"}
         )
 
     def test_raw_loading(self):
@@ -110,12 +110,16 @@ class CorporaTest(BaseTest):
     def test_tagged_words_slicing(self):
         words = self.corpus.tagged_words('3')
         self.assertEqual(len(words), len(self.corpus.words('3')))
-        self.assertEqual(words[17], ('арт-группы', 'UNKN'))
+        self.assertEqual(words[17], ('арт-группы', 'NOUN,inan,femn,plur,accs'))
 
     def test_parsed_words_slicing(self):
         words = self.corpus.parsed_words('3')
         self.assertEqual(len(words), len(self.corpus.words('3')))
-        self.assertEqual(words[17], ('арт-группы', [('арт-группы', 'UNKN')]))
+        self.assertEqual(words[17], ('арт-группы', [
+            ('арт-группа', 'NOUN,inan,femn,plur,accs'),
+            ('арт-группа', 'NOUN,inan,femn,plur,nomn'),
+            ('арт-группа', 'NOUN,inan,femn,sing,gent'),
+        ]))
 
 
     def test_paras(self):
@@ -245,7 +249,7 @@ class TaggedWordsTest(BaseTest):
     def test_corpus(self):
         words = self.corpus.tagged_words()
         self.assertEqual(words[:2], [
-            ('«', 'UNKN'),
+            ('«', 'PNCT'),
             ('Школа', 'NOUN,inan,femn,sing,nomn'),
         ])
         self.assertTaggedAreTheSame(self.corpus)
@@ -254,7 +258,7 @@ class TaggedWordsTest(BaseTest):
         doc = self.corpus.get_document(2)
         words = doc.tagged_words()
         self.assertEqual(words[:2], [
-            ('«', 'UNKN'),
+            ('«', 'PNCT'),
             ('Школа', 'NOUN,inan,femn,sing,nomn'),
         ])
         self.assertTaggedAreTheSame(doc)
@@ -273,7 +277,7 @@ class ParsedWordsTest(BaseTest):
     def test_corpus(self):
         words = self.corpus.parsed_words()
         self.assertEqual(words[:2], [
-            ('«', [('«', 'UNKN')]),
+            ('«', [('«', 'PNCT')]),
             ('Школа', [('школа', 'NOUN,inan,femn,sing,nomn')]),
         ])
         self.assertParsedAreTheSame(self.corpus)
@@ -282,7 +286,7 @@ class ParsedWordsTest(BaseTest):
         doc = self.corpus.get_document(2)
         words = doc.parsed_words()
         self.assertEqual(words[:2], [
-            ('«', [('«', 'UNKN')]),
+            ('«', [('«', 'PNCT')]),
             ('Школа', [('школа', 'NOUN,inan,femn,sing,nomn')]),
         ])
         self.assertParsedAreTheSame(doc)

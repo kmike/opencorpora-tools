@@ -327,8 +327,8 @@ class CorpusReader(object):
         meta = OrderedDict()
 
         bounds_iter = xml_utils.bounds(self.filename,
-                            start_re=r'<text id="(\d+)"[^>]*name="([^"]*)"',
-                            end_re=r'</text>')
+                            start_re=r'\s*<text id="(\d+)"[^>]*name="([^"]*)"',
+                            end_re=r'\s*</text>')
 
         for match, bounds in bounds_iter:
             doc_id, title = str(match.group(1)), match.group(2)
