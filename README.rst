@@ -225,4 +225,4 @@ Make sure `tox <http://tox.testrun.org>`_ is installed and run
 
     $ tox
 
-from the source checkout. Tests should pass under Python 2.7 and 3.3+.
+from the source checkout. Tests should pass under Python 2.7 and 3.5+.

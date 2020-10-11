@@ -59,7 +59,7 @@ def _sentence_parsed_words(sent_elem):
 
 def _grammemes(l_element):
     return [text_type(grammeme.get('v'))
-            for grammeme in l_element.getchildren()]
+            for grammeme in list(l_element)]
 
 
 def non_iterative(func):
